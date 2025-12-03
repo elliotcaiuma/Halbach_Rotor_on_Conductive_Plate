@@ -1,0 +1,2050 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage[numbers]{natbib}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{siunitx}
+\usepackage{geometry}
+\usepackage{amssymb}  
+\usepackage{esint}     
+\usepackage{physics}  
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{matlabstyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=matlabstyle}
+
+\geometry{margin=1in}
+
+\title{General 3-D Steady-State Analysis of Travelling Halbach Rotor Above a Conductive Plate}
+\author{Cai Yundi Elliot}
+\date{03 December 2025}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This research presents a comprehensive three-dimensional steady-state analysis of a travelling Halbach rotor operating above a conductive plate. The study aims to derive analytical expressions that describe the interaction between the rotor's time-varying magnetic field and the induced eddy currents in a nearby conductive medium. In the first approach, a 3-D magnetic charge model is utilized to find the exact magnetic scalar potential, force production, and flow of eddy currents under a thin-sheet approximation. In the second, a Poisson--Laplace analysis is carried out---including separation of variables, Bessel functions, and the use of an orthogonal greedy algorithm---to simplify the complex expressions by a hybrid numerical and analytical model.
+
+The research derives the magnetic scalar potential as an infinite series and associated magnetic field components using Fourier--Laplace techniques. These analytical developments are validated against finite element method (FEM) simulations, ensuring efficient simulation times and accurate modelling. The study shows that the induced eddy currents generate both levitation and drag forces, which can be utilized in applications like maglev transportation \cite{ref2}, dampers \cite{ref19}, eddy current brakes \cite{ref20,ref21}, and electric vehicles \cite{ref40}.
+\end{abstract}
+
+\textbf{Keywords:} Halbach rotor, 3-D magnetic charge model, steady-state analysis, magnetic scalar potential, finite element method
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\section{Introduction}
+When a magnetic source moves or rotates above a conductive plate, it generates a time-varying magnetic field that induces eddy currents, as described by Maxwell's equations. These induced currents create a magnetic field that interacts with the magnetic source, producing both normal and tangential forces. The normal force is responsible for the levitation effect, while the tangential force generates a drag on the rotor, dissipating excess energy. The non-contact nature of the force production makes it suitable for various applications such as maglev transportation \cite{ref2}, dampers \cite{ref19}, eddy current brakes \cite{ref20,ref21}, and electric vehicles \cite{ref40}.
+
+Some studies take a 2-D approach and solve the steady-state equations approximately by the thin-sheet approximation \cite{ref16,ref17} or exactly by Fourier–Laplace transform \cite{ref3}. A few have derived equations for a 3-D model, but their solutions rely on finite element methods \cite{ref1,ref8}, which can result in lengthy simulation times during the development of advanced control strategies when coupling the numerical software with simulation software. In this paper, we aim to provide a clearer understanding of the steady-state equations of the Halbach rotor on a conductive plane by adapting multiple 3-D models to describe the magnetic field and forces acting on both the source and the conductive plate.
+
+\section{A Brief Introduction to the Halbach Rotor}
+A Halbach rotor is a commonly used mechanical instrument created by specialized arrays of permanent magnets. The magnets are arranged in a specific pattern to reinforce the magnetic field on one side while weakening it on the opposite side. This creates a sinusoidal magnetic field distribution, which reduces cogging torque and facilitates smooth operation. This property makes it ideal for applications requiring high-efficiency magnetic coupling, such as energy harvesting and eddy-current-based devices \cite{ref5}.
+
+In general, there are two types of polarities: radial charge polarity and azimuthal charge polarity.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.4\textwidth]{figure2_1}
+\caption{Demonstration of the radial charged polarity and azimuthal charged polarity taken from \cite{ref1}.}
+\end{figure}
+
+When two oppositely polarized, radially charged permanent magnets are put together, they create a magnetic field that follows their direction of magnetization. On the other hand, azimuthally charged permanent magnets create a magnetic field from the tip to the end of the magnetisation direction outside the permanent magnet. When they are arranged together, the magnetic field on the side of the arranged magnets is enhanced, while the other side is reduced.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.4\textwidth]{figure2_2}
+\caption{Illustration of the enhancing and cancelling effects adapted from \cite{ref12}.}
+\end{figure}
+
+This property stretches the magnetic lines on a particular side and creates a strong self-shielding effect, which generates an ideal sinusoidal magnetic source field. It increases the power density compared to the classical configuration \cite{ref10}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.4\textwidth]{figure2_4}
+\caption{A 2D demonstration of the magnetic field of a 4-pole pair external Halbach rotor (external strong field) taken from \cite{ref13}.}
+\end{figure}
+
+The strong power density and self-shielding effect allow the Halbach rotor to use non-core materials (other than magnetic materials) in classical configurations. The wide range of material selection can reduce the rotational inertia effectively, which eventually leads to a reduction in redundant power dissipation.
+
+In automotive applications, Halbach rotors typically use high-coercivity NdFeB magnets for optimal thermal stability and energy density. Bonded NdFeB (e.g., Magfine MF18P) is ideal for Halbach arrays due to:
+\begin{itemize}
+\item Manufacturing flexibility: Injection moulding enables precise anisotropic magnetization for ideal field distribution.
+\item High electrical resistivity (\SI{120}{\micro\ohm\meter}--\SI{150}{\micro\ohm\meter}): Eddy current losses are reduced by more than a hundredfold compared to sintered magnets.
+\item Recyclability: Disassembly and reuse of magnet powder are simplified (up to 30\% recycled content without performance loss).
+\end{itemize}
+
+The sinusoidal flux profile allows pairing with fractional-slot concentrated windings, further improving torque density and fault tolerance in EV/HEV motors. These properties make this specific arrangement of magnets widely used in different industries.
+
+\subsection{Structural Parameters and Equations}
+The following properties and assumptions are captured in the constructed equations:
+\begin{itemize}
+\item The permanent magnet is current-free \cite{ref4}.
+\item The magnetization remains constant despite the external magnetic field due to the high coercivity of the permanent magnet.
+\item The magnets are arranged in a periodic pattern, with the magnetisation being continuous and its angle to the vertical proportional to $\theta/P$.
+\item The magnet is ideal and identical, such that it is fully magnetised in the direction of magnetisation.
+\item Flux leakage and air gaps are neglected.
+\item The permittivity in the air space is constant.
+\item The conductive plate is large enough that the magnetic field components vanish at its edges (Dirichlet boundary condition).
+\end{itemize}
+
+The magnetisation is defined as:
+\begin{equation}
+\vec{M} = M_0 \left[ \cos(P\theta)\,\hat{\rho} \mp \sin(P\theta)\,\hat{\theta} \right]
+\label{eq:2.1}
+\end{equation}
+
+where $M_0$ represents the magnitude of magnetization. The negative sign indicates an external rotor machine, where the strong magnetic field is located outside and the weak field is inside the rotor, and vice versa.
+
+\begin{table}[H]
+\centering
+\caption{Parameters for Halbach Rotor Analysis}
+\begin{tabular}{lll}
+\toprule
+Parameter & Definition & Value \\
+\midrule
+$R_i$ & Inner radius & \SI{0.005}{\meter} \\
+$R_o$ & Outer radius & \SI{0.015}{\meter} \\
+$W_r$ & Width & \SI{0.02}{\meter} \\
+$M_0$ & Magnetization of NdFeB \cite{ref38} & \SI{1e6}{\ampere\per\meter} \\
+$P$ & Pole pairs & 4 \\
+$h_r$ & Height of the rotor above the conductive plate & \SI{0.02}{\meter} \\
+$d_p$ & Thickness of the conductive plate & \SI{0.005}{\meter} \\
+$v_x$ & Velocity of the rotor along the x-axis & \SI{0.05}{\meter\per\second} \\
+$\omega_m$ & Angular velocity of the rotor & \SI{5}{\radian\per\second} \\
+$\sigma$ & Conductivity of plate & \SI{3.8e7}{\siemens\per\meter} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+These parameters are consistent throughout the report in the numerical analysis.
+
+\newpage
+
+\section{Green's Function Approach - Magnetic Charge Model}
+A review of the relevant literature reveals that deriving a simple equation to characterize the magnetic field and the forces generated by eddy currents in a Halbach rotor is quite difficult. This complexity stems from the necessity of multiple infinite series, often involving Bessel functions and Fourier series, which complicates analytical solutions \cite{ref6}.
+
+In this section, we present an exact solution for the magnetic field using a magnetic charge model. By making assumptions such as the thin sheet approximation and adjusting our approach to modeling the rotor movement, we simplify the problem. These simplifications lead to a general and relatively straightforward approximation equation that effectively captures the key physical interactions involved.
+
+The table below shows the values of the parameters modified or added for evaluating numerical results.
+
+\begin{table}[H]
+\centering
+\caption{Modified Parameters for Magnetic Charge Model}
+\begin{tabular}{lll}
+\toprule
+Parameter & Definition & Value \\
+\midrule
+$v_\rho$ & Velocity of the image magnetic charge & \SI{5000}{\meter\per\second} \\
+$d_p$ & Thickness of the conductive plate & $\approx 0$ m \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Model Assumptions and Basic Parameters}
+The following assumptions are made:
+\begin{itemize}
+\item The width of the conductive plate is significantly smaller than both the height and the dimensions of the rotor.
+\end{itemize}
+
+The magnetic volume charge density and the magnetic surface charge density can be found in Furlani (2001):
+\begin{align}
+\rho_m &= -\vec{\nabla} \cdot \vec{M} = -M_0 \frac{1}{\rho} \cos(P\theta)(1 \mp P)
+\label{eq:3.1} \\
+\sigma_m &= \vec{M} \cdot \hat{n} = 
+\begin{cases}
+-M_0 \cos(P\theta), & \text{for } \rho = R_i \\
+M_0 \cos(P\theta), & \text{for } \rho = R_o \\
+0, & \text{for } z = \pm W_r/2
+\end{cases}
+\label{eq:3.2}
+\end{align}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.4\textwidth]{figure3_1}
+\caption{Illustration of the surface charge distribution of a 4-pole pair Halbach rotor}
+\end{figure}
+
+The magnetic field is given by:
+\begin{equation}
+\vec{B} = \mu_0 (\vec{H} + \vec{M})
+\label{eq:3.3}
+\end{equation}
+
+By taking divergence on both sides, the magnetic field drops out because of the Maxwell equation $\vec{\nabla} \cdot \vec{B} = 0$. By substituting the magnetic scalar potential $\phi$ into the equation, the following is obtained:
+\begin{equation}
+\vec{\nabla} \cdot \vec{M} = \nabla^2 \phi_m
+\label{eq:3.4}
+\end{equation}
+
+The Green's function for the Laplace operator is given by (detailed derivation provided in Appendix 1):
+\begin{equation}
+g(\vec{x}, \vec{x}') = \frac{1}{4\pi |\vec{x} - \vec{x}'|}
+\label{eq:3.5}
+\end{equation}
+
+The magnetic scalar potential can be found by:
+\begin{align}
+L[g] &= -\delta(x - x') \nonumber \\
+L[g] \, \vec{\nabla}' \cdot \vec{M}' &= -\delta(x - x') \, \vec{\nabla}' \cdot \vec{M}' \nonumber \\
+\iiint_{\tau'} L[g] \, \vec{\nabla}' \cdot \vec{M}' \, d\tau' &= -\iiint_{\tau'} \delta(x - x') \, \vec{\nabla}' \cdot \vec{M}' \, d\tau' \nonumber \\
+-\frac{1}{4\pi} \iiint_{\tau'} \frac{\vec{\nabla}' \cdot \vec{M}'}{|\vec{x} - \vec{x}'|} \, d\tau' &= L^{-1} [\vec{\nabla} \cdot \vec{M}] \nonumber \\
+\phi_m &= \frac{1}{4\pi} \left( \iiint_{\tau'} \frac{\rho'_m}{|\vec{x} - \vec{x}'|} \, d\tau' + \oiint_{a'} \frac{\sigma'_m}{|\vec{x} - \vec{x}'|} \, da' \right)
+\label{eq:3.6}
+\end{align}
+
+
+Here, the prime denotes the source point, and $L = \nabla^2$ is the Sturm-Liouville operator or the Laplace operator.
+
+\subsection{Magnetic Components}
+Using this model, both the magnetic scalar potential and the magnetic field can be computed at a point $(\rho, \theta, z)$.
+
+To better capture the behaviour, the quantity $\varphi$ is introduced, accounting for the initial angle shift:
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.4\textwidth]{figure3_2}
+\caption{Illustration of the angle shift}
+\end{figure}
+
+The magnetic scalar potential can be computed by equation \eqref{eq:3.6}, which can be rewritten as:
+\begin{equation}
+\phi_m (\rho, \theta, z) = \frac{M_0}{4\pi} 
+\begin{cases}
+-\int_{-W_r/2}^{W_r/2} \int_\theta^{2\pi+\theta} \int_{R_i}^{R_o} \frac{\cos[P(\theta' - \varphi)](1 \mp P)}{\sqrt{\rho^2 + \rho'^2 - 2\rho\rho' \cos(\theta - \theta') + (z - z')^2}} d\rho' d\theta' dz' \\
+-\int_{-W_r/2}^{W_r/2} \int_\theta^{2\pi+\theta} \frac{\cos[P(\theta' - \varphi)]}{\sqrt{\rho^2 + R_i^2 - 2\rho R_i \cos(\theta - \theta') + (z - z')^2}} R_i d\theta' dz' \\
++\int_{-W_r/2}^{W_r/2} \int_\theta^{2\pi+\theta} \frac{\cos[P(\theta' - \varphi)]}{\sqrt{\rho^2 + R_o^2 - 2\rho R_o \cos(\theta - \theta') + (z - z')^2}} R_o d\theta' dz'
+\end{cases}
+\label{eq:3.7}
+\end{equation}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figure3_3}
+\caption{Graph of the magnetic scalar potential on $z=0$ for the external and internal rotor, respectively (the white line and dotted line indicate the outer and inner radius of the rotor)}
+\end{figure}
+
+A periodic behaviour of the magnetic scalar potential is observed with a period of $2\pi/P$.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figure3_4}
+\caption{Value of magnetic scalar potential for $z=0.05$m for the external and internal rotor, respectively}
+\end{figure}
+
+When the value of $z$ increases, the field is more dispersed, while the field magnitude decreases significantly.
+
+The 3D plot illustrates the decaying nature of the magnetic scalar potential of the rotor.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figure3_5}
+\caption{Graph of 3D magnetic scalar potential for the external and internal rotor, respectively (values lower than 20\% are not plotted)}
+\end{figure}
+
+The magnetic field strength is related to the magnetic scalar potential by:
+\begin{equation}
+\vec{H} = -\vec{\nabla} \phi = -\frac{\partial \phi_m}{\partial \rho} \hat{\rho} - \frac{1}{\rho} \frac{\partial \phi_m}{\partial \theta} \hat{\theta} - \frac{\partial \phi_m}{\partial z} \hat{z}
+\label{eq:3.8}
+\end{equation}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figure3_7}
+\caption{Magnitude and direction of magnetic field strength for $z=0$ for the internal and external rotor, respectively}
+\end{figure}
+
+The magnetic field in all regions can be computed by:
+\begin{equation}
+\vec{B} = 
+\begin{cases}
+\mu_0 \left[ -\left( \frac{\partial \phi_m}{\partial \rho} \hat{\rho} + \frac{1}{\rho} \frac{\partial \phi_m}{\partial \theta} \hat{\theta} + \frac{\partial \phi_m}{\partial z} \hat{z} \right) + M_0 \left[ \cos(P\theta) \hat{\rho} \mp \sin(P\theta) \hat{\theta} \right] \right], \\
+\quad \text{for } (\rho, \theta, z) \in R_i < \rho < R_o \text{ and } |z| < W_r/2 \\
+-\mu_0 \left( \frac{\partial \phi_m}{\partial \rho} \hat{\rho} + \frac{1}{\rho} \frac{\partial \phi_m}{\partial \theta} \hat{\theta} + \frac{\partial \phi_m}{\partial z} \hat{z} \right), \quad \text{otherwise}
+\end{cases}
+\label{eq:3.9}
+\end{equation}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figure3_8}
+\caption{Magnitude and direction of the magnetic field strength for $z=0$ for the internal and external rotor, respectively}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figure3_9}
+\caption{Magnitude and direction of the magnetic field strength for $z=0$ for the internal and external rotor, respectively}
+\end{figure}
+
+\subsection{Magnetic Charge Model with Conductive Plate}
+\subsubsection{Correlation of Eddy Current and Wave Equation}
+In this section, the relationship between induced eddy currents and the wave equation is explored by utilizing the thin sheet approximation. We aim to simplify the complex interactions between electromagnetic fields and conductive materials.
+
+The Maxwell equation gives:
+\begin{align}
+\vec{\nabla} \times \vec{E} &= -\frac{\partial \vec{B}}{\partial t}
+\label{eq:3.10} \\
+\vec{\nabla} \times \vec{B} &= \mu_0 \vec{J} + \mu_0 \varepsilon_0 \frac{\partial \vec{E}}{\partial t}
+\label{eq:3.11}
+\end{align}
+
+Neglecting the displacement current and utilizing the fact that $\vec{J} = \sigma \vec{E}$,
+\begin{equation}
+\nabla^2 \vec{B} = \mu_0 \sigma \frac{\partial \vec{B}}{\partial t}
+\label{eq:3.12}
+\end{equation}
+
+As $d_p \ll h_r$, the equation reduces to:
+\begin{equation}
+\frac{\partial^2 B_y}{\partial y^2} = \mu_0 \sigma \frac{\partial B_y}{\partial t}
+\label{eq:3.13}
+\end{equation}
+
+Where $d_p$ and $h_r$ are the thickness of the plate and the height of the rotor, respectively.
+
+Since $d_p$ is small, the equation can be expressed as a first-degree derivative for the region $y \approx 0$ given by:
+\begin{equation}
+\frac{\left. \frac{\partial B_y}{\partial y} \right|_y - \left. \frac{\partial B_y}{\partial y} \right|_{ -y - d}}{2y + d_p} = \mu_0 \sigma \frac{\partial B_y}{\partial t}
+\label{eq:3.14}
+\end{equation}
+
+Since the region across is small, $\partial B_y/\partial y$ can be treated as an odd function for $y \approx 0$. Therefore,
+\begin{equation}
+\frac{\partial B_y}{\partial y} = \frac{\mu_0 \sigma d_p}{2} \frac{\partial B_y}{\partial t}
+\label{eq:3.15}
+\end{equation}
+
+For a typical wave equation,
+\begin{equation}
+\left[ \left( \frac{1}{v} \frac{\partial}{\partial t} - \frac{\partial}{\partial y} \right) \left( \frac{1}{v} \frac{\partial}{\partial t} + \frac{\partial}{\partial y} \right) \right] u = 0
+\label{eq:3.16}
+\end{equation}
+
+The equation derived above has the form of the half-wave equation, where the 'wave' is propagating in the negative $y$ direction. As the magnetic charge has been related to the wave, this indicates that the image magnetic charge is propagating through the negative $y$ direction with a speed of:
+\begin{equation}
+v_\rho = \frac{2}{\mu_0 \sigma d_p}
+\label{eq:3.17}
+\end{equation}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.4\textwidth]{figure3_4b}
+\caption{Visualization of the defined parameters}
+\end{figure}
+
+\subsubsection{Propagation of the Image Magnetic Charge}
+When a conductive plate of width $d_p$ is positioned above the plane $y=0$, the magnetic field at $y=0$ must be zero. Consequently, the image magnetic charge can be modelled with the same sign as the actual magnetic charge, with the position reflected along the $x$-axis \cite{ref31}.
+
+The concept of the propagating image charge can also be extended to apply to the magnetic field in the region where $z \geq 0$. This extension is valid under the condition that the time evolution of the system is sufficiently slow relative to the response time of the conducting thin plate, i.e., the conductive plate responds instantly to the motion of the Halbach rotor \cite{ref29}.
+
+The motion of the magnetic charge up to the present moment $t=0$ is considered, with the focus on the magnetic scalar potential generated by all image charges that arise from the movement of this charge along its trajectory.
+
+To analyse this, the magnetic charge's trajectory is broken into discrete time steps represented by an infinitesimal interval $\tau$. The motion of the magnetic charge is modelled as a series of hops occurring at the beginning of each time step. Each hop is characterized by the simultaneous removal of one magnetic charge and the creation of another charge, which appears at the trajectory position corresponding to the start of the current time step, while the removed charge is positioned at its trajectory location from the previous time step. However, since the image charge is propagating downward, the created counter charge cannot fully eliminate the effect of the original image charge. Instead, they are separated by a distance of $v_\rho \tau$.
+
+By taking an infinite number of steps with an infinitesimal time interval $\tau$, the individual hops of the magnetic charge become so small that we can effectively treat its motion as continuous. By integrating these contributions over the entire trajectory of the magnetic charge, a governing steady-state equation that accounts for both the motion of the magnetic charge and the response of the conductive plate can be derived, which describes the drag and levitating force experienced by the Halbach rotor as it moves through the conducting thin plate.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.6\textwidth]{figure3_5b}
+  \caption{Illustration of the propagating image magnetic charge at time $-n\tau$ (start) and $-(n-1)\tau$ (first infinitesimal step)}
+\end{figure}
+
+
+
+By assuming that the rotor moves at a constant velocity $v_x$ and angular velocity $\omega_m$, the influence of the angular velocity on the charge distribution can be modelled by:
+\begin{equation}
+\rho_m(t, \theta') = \rho_{m0} \cos[P(\theta' + \omega_m t - \varphi)]
+\label{eq:3.18}
+\end{equation}
+
+Where $\varphi$ accounts for the angle shift at $t=0$.
+
+The current image charge, the image charge backtracking the first infinitesimal step, and the first counter image charge, denoted by $\rho_0$, $\rho_1$ and $\rho_1'$ respectively, are given by:
+\begin{align}
+\rho_0 &= \rho_m(t=0, \theta')(\rho' \sin\theta', -h_r - \rho' \cos\theta', z')
+\label{eq:3.19} \\
+\rho_1 &= \rho_m(t=-\tau, \theta')(\rho' \sin\theta' - v_x \tau, -h_r - \rho' \cos\theta' - v_\rho \tau, z')
+\label{eq:3.20} \\
+\rho_1' &= -\rho_m(t=0, \theta')(\rho' \sin\theta' - v_x \tau, -h_r - \rho' \cos\theta', z')
+\label{eq:3.21}
+\end{align}
+
+In general, the $n$th charge and counter charge are located at:
+\begin{align}
+\rho_k &= \rho_m(t=-k\tau, \theta'), (\rho' \sin\theta' - k v_x \tau, -h_r - \rho' \cos\theta' - k v_\rho \tau, z') \quad \forall k \in [0,n]
+\label{eq:3.22} \\
+\rho_k' &= -\rho_m(t=-(k-1)\tau, \theta'), (\rho' \sin\theta' - k v_x \tau, -h_r - \rho' \cos\theta' - (k-1) v_\rho \tau, z') \quad \forall k \in [1,n]
+\label{eq:3.23}
+\end{align}
+
+By aggregating all the contributions and setting the number of steps to infinity, which gives the steady state of the system, the total magnetic scalar potential at the point $(x, y+h_r, z)$ from all the propagating image charges can be expressed as an infinite sum below:
+\begin{equation}
+\phi_m(x,y,z,\varphi) = 
+\begin{aligned}
+&-\frac{1}{4\pi} \sum_{n=0}^{\infty} \int_{-W_r/2}^{W_r/2} \int_{R_i}^{R_o} \int_{\arctan\left(\frac{x + v_x n\tau}{y + h_r + v_\rho n\tau}\right)}^{2\pi + \arctan\left(\frac{x + v_x n\tau}{y + h_r + v_\rho n\tau}\right)} \\
+&\quad \frac{M_0 \cos[P(\theta' + \omega_m n\tau - \varphi)] (1 - P)}{\sqrt{(x - \rho' \sin\theta' + v_x n\tau)^2 + (y + h_r + \rho' \cos\theta' + v_\rho n\tau)^2 + (z - z')^2}}  d\rho'  d\theta'  dz' \\
+&+\frac{1}{4\pi} \sum_{n=0}^{\infty} \int_{-W_r/2}^{W_r/2} \int_{R_i}^{R_o} \int_{\arctan\left(\frac{x + v_x (n+1)\tau}{y + h_r + v_\rho n\tau}\right)}^{2\pi + \arctan\left(\frac{x + v_x (n+1)\tau}{y + h_r + v_\rho n\tau}\right)} \\
+&\quad \frac{M_0 \cos[P(\theta' + \omega_m n\tau - \varphi)] (1 - P)}{\sqrt{(x - \rho' \sin\theta' + v_x (n+1)\tau)^2 + (y + h_r + \rho' \cos\theta' + v_\rho n\tau)^2 + (z - z')^2}}  d\rho'  d\theta'  dz' \\
+&-\frac{1}{4\pi} \sum_{n=0}^{\infty} \int_{-W_r/2}^{W_r/2} \int_{\arctan\left(\frac{x + v_x n\tau}{y + h_r + v_\rho n\tau}\right)}^{2\pi + \arctan\left(\frac{x + v_x n\tau}{y + h_r + v_\rho n\tau}\right)} \\
+&\quad \frac{M_0 \cos[P(\theta' + \omega_m n\tau - \varphi)]}{\sqrt{(x - R_i \sin\theta' + v_x n\tau)^2 + (y + h_r + R_i \cos\theta' + v_\rho n\tau)^2 + (z - z')^2}} R_i  d\theta'  dz' \\
+&+\frac{1}{4\pi} \sum_{n=0}^{\infty} \int_{-W_r/2}^{W_r/2} \int_{\arctan\left(\frac{x + v_x (n+1)\tau}{y + h_r + v_\rho n\tau}\right)}^{2\pi + \arctan\left(\frac{x + v_x (n+1)\tau}{y + h_r + v_\rho n\tau}\right)} \\
+&\quad \frac{M_0 \cos[P(\theta' + \omega_m n\tau - \varphi)]}{\sqrt{(x - R_i \sin\theta' + v_x (n+1)\tau)^2 + (y + h_r + R_i \cos\theta' + v_\rho n\tau)^2 + (z - z')^2}} R_i  d\theta'  dz' \\
+&+\frac{1}{4\pi} \sum_{n=0}^{\infty} \int_{-W_r/2}^{W_r/2} \int_{\arctan\left(\frac{x + v_x n\tau}{y + h_r + v_\rho n\tau}\right)}^{2\pi + \arctan\left(\frac{x + v_x n\tau}{y + h_r + v_\rho n\tau}\right)} \\
+&\quad \frac{M_0 \cos[P(\theta' + \omega_m n\tau - \varphi)]}{\sqrt{(x - R_o \sin\theta' + v_x n\tau)^2 + (y + h_r + R_o \cos\theta' + v_\rho n\tau)^2 + (z - z')^2}} R_o  d\theta'  dz' \\
+&-\frac{1}{4\pi} \sum_{n=0}^{\infty} \int_{-W_r/2}^{W_r/2} \int_{\arctan\left(\frac{x + v_x (n+1)\tau}{y + h_r + v_\rho n\tau}\right)}^{2\pi + \arctan\left(\frac{x + v_x (n+1)\tau}{y + h_r + v_\rho n\tau}\right)} \\
+&\quad \frac{M_0 \cos[P(\theta' + \omega_m n\tau - \varphi)]}{\sqrt{(x - R_o \sin\theta' + v_x (n+1)\tau)^2 + (y + h_r + R_o \cos\theta' + v_\rho n\tau)^2 + (z - z')^2}} R_o  d\theta'  dz'
+\end{aligned}
+\label{eq:3.24}
+\end{equation}
+
+Since the steps are infinitesimal, it can be replaced by integrals over time, given by:
+\begin{equation}
+\phi_m(x,y,z,\varphi) = 
+\begin{aligned}
+&-\frac{1}{4\pi\tau} \int_0^{\infty} \int_{-W_r/2}^{W_r/2} \int_{R_i}^{R_o} \int_{\arctan\left(\frac{x + v_x t}{y + h_r + v_\rho t}\right)}^{2\pi + \arctan\left(\frac{x + v_x t}{y + h_r + v_\rho t}\right)} \\
+&\quad \frac{M_0 \cos[P(\theta' + \omega_m t - \varphi)] (1 - P)}{\sqrt{(x - \rho' \sin\theta' + v_x t)^2 + (y + h_r + \rho' \cos\theta' + v_\rho t)^2 + (z - z')^2}}  d\theta'  d\rho'  dz'  dt \\
+&+\frac{1}{4\pi\tau} \int_0^{\infty} \int_{-W_r/2}^{W_r/2} \int_{R_i}^{R_o} \int_{\arctan\left(\frac{x + v_x t + v_x \tau}{y + h_r + v_\rho t}\right)}^{2\pi + \arctan\left(\frac{x + v_x t + v_x \tau}{y + h_r + v_\rho t}\right)} \\
+&\quad \frac{M_0 \cos[P(\theta' + \omega_m t - \varphi)] (1 - P)}{\sqrt{(x - \rho' \sin\theta' + v_x t + v_x \tau)^2 + (y + h_r + \rho' \cos\theta' + v_\rho t)^2 + (z - z')^2}}  d\theta'  d\rho'  dz'  dt \\
+&-\frac{1}{4\pi\tau} \int_0^{\infty} \int_{-W_r/2}^{W_r/2} \int_{\arctan\left(\frac{x + v_x t}{y + h_r + v_\rho t}\right)}^{2\pi + \arctan\left(\frac{x + v_x t}{y + h_r + v_\rho t}\right)} \\
+&\quad \frac{M_0 \cos[P(\theta' + \omega_m t - \varphi)]}{\sqrt{(x - R_i \sin\theta' + v_x t)^2 + (y + h_r + R_i \cos\theta' + v_\rho t)^2 + (z - z')^2}} R_i  d\theta'  dz'  dt \\
+&+\frac{1}{4\pi\tau} \int_0^{\infty} \int_{-W_r/2}^{W_r/2} \int_{\arctan\left(\frac{x + v_x t + v_x \tau}{y + h_r + v_\rho t}\right)}^{2\pi + \arctan\left(\frac{x + v_x t + v_x \tau}{y + h_r + v_\rho t}\right)} \\
+&\quad \frac{M_0 \cos[P(\theta' + \omega_m t - \varphi)]}{\sqrt{(x - R_i \sin\theta' + v_x t + v_x \tau)^2 + (y + h_r + R_i \cos\theta' + v_\rho t)^2 + (z - z')^2}} R_i  d\theta'  dz'  dt \\
+&+\frac{1}{4\pi\tau} \int_0^{\infty} \int_{-W_r/2}^{W_r/2} \int_{\arctan\left(\frac{x + v_x t}{y + h_r + v_\rho t}\right)}^{2\pi + \arctan\left(\frac{x + v_x t}{y + h_r + v_\rho t}\right)} \\
+&\quad \frac{M_0 \cos[P(\theta' + \omega_m t - \varphi)]}{\sqrt{(x - R_o \sin\theta' + v_x t)^2 + (y + h_r + R_o \cos\theta' + v_\rho t)^2 + (z - z')^2}} R_o  d\theta'  dz'  dt \\
+&-\frac{1}{4\pi\tau} \int_0^{\infty} \int_{-W_r/2}^{W_r/2} \int_{\arctan\left(\frac{x + v_x t + v_x \tau}{y + h_r + v_\rho t}\right)}^{2\pi + \arctan\left(\frac{x + v_x t + v_x \tau}{y + h_r + v_\rho t}\right)} \\
+&\quad \frac{M_0 \cos[P(\theta' + \omega_m t - \varphi)]}{\sqrt{(x - R_o \sin\theta' + v_x t + v_x \tau)^2 + (y + h_r + R_o \cos\theta' + v_\rho t)^2 + (z - z')^2}} R_o  d\theta'  dz'  dt
+\end{aligned}
+\label{eq:3.25}
+\end{equation}
+
+Since each pair of the charge and counter charge integrals is only off by an infinitesimal $v_x \tau$ component, if $f(t)$ is continuous, smooth and differentiable with respect to $t$, the difference between the two can be approximated by linearization.
+\begin{equation}
+f(t) - f(t + v_x \tau) \approx f(t) - f(t) - \frac{\partial f(t)}{\partial t} v_x \tau = -\frac{\partial f(t)}{\partial t} v_x \tau
+\label{eq:3.26}
+\end{equation}
+
+We can bypass redundant calculations by considering:
+\begin{equation}
+\int_0^{\infty} \frac{\partial f(x,y,z,t,\varphi)}{\partial t} dt = \left[ f(x,y,z,t,\varphi) \right]_{t=0}^{t=\infty}
+\label{eq:3.27}
+\end{equation}
+
+The simplified form of equation \eqref{eq:3.25} is then written as:
+\begin{equation}
+\phi_m(x,y,z,\varphi) \approx \frac{v_x M_0}{4\pi} \left[ 
+\begin{aligned}
+&\int_{-W_r/2}^{W_r/2} \int_{R_i}^{R_o} \int_{\arctan\left(\frac{x + v_x t}{y + h_r + v_\rho t}\right)}^{2\pi + \arctan\left(\frac{x + v_x t}{y + h_r + v_\rho t}\right)} \\
+&\quad \frac{\cos[P(\theta' + \omega_m t - \varphi)] (1 - P)}{\sqrt{(x - \rho' \sin\theta' + v_x t)^2 + (y + h_r + \rho' \cos\theta' + v_\rho t)^2 + (z - z')^2}} d\theta' d\rho' dz' \\
+&+ \int_{-W_r/2}^{W_r/2} \int_{\arctan\left(\frac{x + v_x t}{y + h_r + v_\rho t}\right)}^{2\pi + \arctan\left(\frac{x + v_x t}{y + h_r + v_\rho t}\right)} \\
+&\quad \frac{\cos[P(\theta' + \omega_m t - \varphi)]}{\sqrt{(x - R_i \sin\theta' + v_x t)^2 + (y + h_r + R_i \cos\theta' + v_\rho t)^2 + (z - z')^2}} R_i d\theta' dz' \\
+&- \int_{-W_r/2}^{W_r/2} \int_{\arctan\left(\frac{x + v_x t}{y + h_r + v_\rho t}\right)}^{2\pi + \arctan\left(\frac{x + v_x t}{y + h_r + v_\rho t}\right)} \\
+&\quad \frac{\cos[P(\theta' + \omega_m t - \varphi)]}{\sqrt{(x - R_o \sin\theta' + v_x t)^2 + (y + h_r + R_o \cos\theta' + v_\rho t)^2 + (z - z')^2}} R_o d\theta' dz'
+\end{aligned} \right]_{t=0}^{t=\infty}
+\label{eq:3.28}
+\end{equation}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{figure3_7b}
+\caption{Magnetic scalar potential distribution contributed by the image external rotor in steady state, where the black circle indicates the position of the Halbach rotor}
+\end{figure}
+
+The total magnetic force acting on the volume and surface charge is given by:
+\begin{equation}
+\vec{F}_m = -\mu_0 \left( \iiint_{\tau'} \rho_m \vec{\nabla} \phi_m d\tau' + \oiint_{a'} \sigma_m \vec{\nabla} \phi_m da' \right)
+\label{eq:3.29}
+\end{equation}
+
+By substituting the derived parameters, the following results:
+\begin{multline}
+\vec{F}_m = -\mu_0 \bigg\{ 
+- \int_{-W_r/2}^{W_r/2} \int_0^{2\pi} \int_{R_i}^{R_o} M_0 \cos[P(\theta - \varphi)](1 - P) \\
+\times \left. \left[ \left( \frac{\partial}{\partial x} \hat{i} + \frac{\partial}{\partial y} \hat{j} \right) \phi_m(x,y,z,\varphi) \right] \right|_{\substack{x = \rho \sin\theta \\ y = h_r + \rho \cos\theta}} d\rho d\theta dz \\
+- \int_{-W_r/2}^{W_r/2} \int_0^{2\pi} M_0 \cos[P(\theta - \varphi)] \\
+\times \left. \left[ \left( \frac{\partial}{\partial x} \hat{i} + \frac{\partial}{\partial y} \hat{j} \right) \phi_m(x,y,z,\varphi) \right] \right|_{\substack{x = R_i \sin\theta \\ y = h_r + R_i \cos\theta}} R_i d\theta dz \\
++ \int_{-W_r/2}^{W_r/2} \int_0^{2\pi} M_0 \cos[P(\theta - \varphi)] \\
+\times \left. \left[ \left( \frac{\partial}{\partial x} \hat{i} + \frac{\partial}{\partial y} \hat{j} \right) \phi_m(x,y,z,\varphi) \right] \right|_{\substack{x = R_o \sin\theta \\ y = h_r + R_o \cos\theta}} R_o d\theta dz \bigg\}
+\label{eq:3.30}
+\end{multline}
+
+The $z$ component is neglected due to axial symmetry.
+
+The result shows an oscillation of force with period $T = \pi/P$ as illustrated in the below graph.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{figure3_8b}
+\caption{Graph of steady state $x$ and $y$ force components over angle shift}
+\end{figure}
+
+\subsection{Model Evaluation}
+The use of magnetic charge to derive the exact source field is extremely useful for facilitating the thin sheet approximation and avoid tedious 3D calculations. It gives a good approximation of the field components. However, the sources field is too overly complicated that it is not applicable for thick plate analysis.
+\newpage
+\section{3-D Laplace-Poisson Approach -- Magnetic Scalar Potential Model}
+In this section, we will utilize the Laplace-Poisson equation to analyse the magnetic scalar potential of the Halbach rotor. The homogeneous Helmholtz equation is applicable in regions where there is no magnetic source, and the nonhomogeneous Helmholtz equation will be employed in regions where magnetic sources are present.
+
+Several papers have investigated the magnetic source field generated by the Halbach rotor. However, only a two-dimensional general equation for this magnetic source field has been derived \cite{ref4}. A few studies have attempted to solve it using the finite element method \cite{ref1,ref2,ref7}, which provides great insights and accurate calculations, but this limits future exploration due to the absence of equations for tuning the parameters. In this section, we are going to expand to the 3-dimensional field by considering the edge effect.
+
+\subsection{Governing Parameters and Equations}
+\subsubsection{Region Definition}
+We separate the space into four regions: the air space region inside the rotor $\Omega_I$, magnet region $\Omega_{II}$, and air space region elsewhere $\Omega_{III}$ and $\Omega_{IV}$, each corresponds to different singularity points. Since the Halbach rotor exhibits axial symmetry, we can simplify the analysis by focusing exclusively on the region where $z\geq 0$. Therefore, the range of the regions is:
+\begin{align}
+\Omega_I &\in \{\rho \leq R_i \cup 0 \leq z \leq W_r/2\} \label{eq:4.1} \\
+\Omega_{II} &\in \{R_i \leq \rho \leq R_o \cup 0 \leq z \leq W_r/2\} \label{eq:4.2} \\
+\Omega_{III} &\in \{\rho \leq R_o \cup W_r/2 \leq z\} \label{eq:4.3} \\
+\Omega_{IV} &\in \{R_o \leq \rho \cup 0 \leq z\} \label{eq:4.4}
+\end{align}
+
+\begin{figure}[H]
+\centering
+
+\begin{minipage}{0.24\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figure4_1}
+    \caption*{Region I (blue)}
+\end{minipage}
+\hfill
+\begin{minipage}{0.24\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figure4_2}
+    \caption*{Region II (red)}
+\end{minipage}
+\hfill
+\begin{minipage}{0.24\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figure4_3}
+    \caption*{Region III (green)}
+\end{minipage}
+\hfill
+\begin{minipage}{0.24\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figure4_4}
+    \caption*{Region IV (orange)}
+\end{minipage}
+
+\caption{Indications of regions I–IV}
+\end{figure}
+
+
+\subsubsection{Parameter Address}
+The magnetic field is related to the magnetic field strength $\vec{H}$ and the magnetisation $\vec{M}$ by:
+\begin{equation}
+\vec{B} = 
+\begin{cases}
+\mu_0 (\vec{H} + \vec{M}), & R_i \leq \rho \leq R_o \cup 0 \leq z \leq W_r/2 \\
+\mu_0 \vec{H}, & \text{otherwise}
+\end{cases}
+\label{eq:4.5}
+\end{equation}
+
+By performing divergence on both sides of the equation, by Maxwell's equation, the LHS reduces to zero since $\vec{\nabla} \cdot \vec{B} = 0$. Therefore, the magnetization and magnetic field strength are related by:
+\begin{equation}
+\vec{\nabla} \cdot \vec{H} = -\vec{\nabla} \cdot \vec{M}
+\label{eq:4.6}
+\end{equation}
+
+The magnetic scalar potential and the magnetic field strength are related by:
+\begin{equation}
+\vec{H} = -\vec{\nabla} \phi_m = -\left( \frac{\partial \phi_m}{\partial \rho} \hat{\rho} + \frac{1}{\rho} \frac{\partial \phi_m}{\partial \theta} \hat{\theta} + \frac{\partial \phi_m}{\partial z} \hat{z} \right)
+\label{eq:4.7}
+\end{equation}
+
+By applying divergence to both sides of the equation, a Poisson equation is obtained in which the magnetization serves as a source for the magnetic field:
+\begin{equation}
+\nabla^2 \phi_m = \vec{\nabla} \cdot \vec{M}
+\label{eq:4.8}
+\end{equation}
+
+Recall the magnetization derived in Section 2. Since the dimension of the radial term of the rotor is no longer negligible in this context, the region where the magnetization occurs is included:
+\begin{equation}
+\vec{M}(\rho,\theta,z) = 
+\begin{cases}
+M_0 \left[ \cos(P\theta) \hat{\rho} \mp \sin(P\theta) \hat{\theta} \right], & R_i \leq \rho \leq R_o \cup 0 \leq z \leq W_r/2 \\
+0, & \text{otherwise}
+\end{cases}
+\label{eq:4.9}
+\end{equation}
+
+By substituting it in equation \eqref{eq:4.8}, we obtain an expression for the magnetic scalar potential in different regions:
+\begin{align}
+\nabla^2 \phi_{m\varsigma}(\rho,\theta,z) &= \frac{1}{\rho} \frac{\partial}{\partial \rho} \left( \rho \frac{\partial \phi_{m\varsigma}}{\partial \rho} \right) + \frac{1}{\rho^2} \frac{\partial^2 \phi_{m\varsigma}}{\partial \theta^2} + \frac{\partial^2 \phi_{m\varsigma}}{\partial z^2} = 0, \quad \varsigma \in \{I,III,IV\} \label{eq:4.10} \\
+\nabla^2 \phi_{m\varsigma}(\rho,\theta,z) &= \frac{1}{\rho} \frac{\partial}{\partial \rho} \left( \rho \frac{\partial \phi_{m\varsigma}}{\partial \rho} \right) + \frac{1}{\rho^2} \frac{\partial^2 \phi_{m\varsigma}}{\partial \theta^2} + \frac{\partial^2 \phi_{m\varsigma}}{\partial z^2} = \vec{\nabla} \cdot \vec{M}, \quad \varsigma \in \{II\} \label{eq:4.11}
+\end{align}
+
+Where the divergence of the magnetization vector in cylindrical coordinates is given by:
+\begin{equation}
+\vec{\nabla} \cdot \vec{M}(\rho,\theta) = 
+\begin{cases}
+\frac{1}{\rho} M_0 \cos(P\theta) (1 \mp P), & R_i \leq \rho \leq R_o \cup 0 \leq z \leq W_r/2 \\
+0, & \text{otherwise}
+\end{cases}
+\label{eq:4.12}
+\end{equation}
+
+\subsection{Boundary Conditions}
+The Dirichlet boundary conditions at the singularity points should be considered. Given that the system exhibits angular symmetry ($P \in \mathbb{Z}^+ > 1$), the contribution of the magnetic scalar potential should approach zero at $\rho = 0$:
+\begin{equation}
+\phi_{mI}(0,\theta,z) = 0, \quad \phi_{mIII}(0,\theta,z) = 0
+\label{eq:4.13}
+\end{equation}
+
+The magnetic scalar potential should vanish at infinity. Therefore, the equations below can be written:
+\begin{equation}
+\lim_{z \to \infty} \phi_{mIII}(\rho,\theta,z) = 0, \quad \lim_{\rho \to \infty} \phi_{mIV}(\rho,\theta,z) = \lim_{z \to \infty} \phi_{mIV}(\rho,\theta,z) = 0
+\label{eq:4.14}
+\end{equation}
+
+\subsection{General Form of the Source Field}
+We start by employing the method of separation of variables and express the magnetic scalar potential as follows:
+\begin{equation}
+\phi_m(\rho,\theta,z) = R(\rho)\Theta(\theta)Z(z)
+\label{eq:4.15}
+\end{equation}
+
+From section 3, we can observe that the angular dependency only includes $\cos(P\theta)$. Therefore, the homogeneous equation has the form:
+\begin{equation}
+\phi_m(\rho,\theta,z) = \cos(P\theta) R(\rho) Z(z)
+\label{eq:4.16}
+\end{equation}
+
+We assign an eigenvalue $\lambda_n$ to the $z$ component, expressed as:
+\begin{equation}
+\partial_{zz} Z_{\varsigma,h}(z) = \pm \lambda_n^2 Z_{\varsigma,h}(z)
+\label{eq:4.17}
+\end{equation}
+
+The set of solutions is given by:
+\begin{equation}
+\phi_{m\varsigma}(\rho,\theta,z) = \cos(P\theta) 
+\begin{cases}
+\sum_{n=1}^{\infty} [a_1 J_P(\lambda_n \rho) + b_1 Y_P(\lambda_n \rho)](c_1 e^{\lambda_n z} + d_1 e^{-\lambda_n z}) \\
+\sum_{n=1}^{\infty} [a_1 I_P(\lambda_n \rho) + b_1 K_P(\lambda_n \rho)][c_1 \sin(\lambda_n z) + d_1 \cos(\lambda_n z)]
+\end{cases}
+\label{eq:4.18}
+\end{equation}
+
+Where $J_P$, $Y_P$, $I_P$ and $K_P$ are the Bessel functions of the first kind, second kind, Bessel modified functions of the first and second kind, respectively.
+
+The particular solution can be found by substituting $\phi_{mII} = M\rho \cos(P\theta)$ into the equation of $\Omega_{II}$. We can see that:
+\begin{equation}
+\phi_{mII,p} = \frac{M_0 (1 \mp P)}{1 - P^2} \rho \cos(P\theta)
+\label{eq:4.19}
+\end{equation}
+
+Where:
+\begin{equation}
+\nabla^2 \phi_{mII,p} = \vec{\nabla} \cdot \vec{M}
+\label{eq:4.20}
+\end{equation}
+
+By considering the boundary conditions at each singularity points, the general form of the governing equations of each region is derived:
+\begin{align}
+\phi_I &= \cos(P\theta) \left[ \sum_{n=1}^{\infty} C_{I1}(n) e^{-k_{In} z} J_P(k_n \rho) \right] \label{eq:4.21} \\
+\phi_{II} &= \cos(P\theta) \left[ 
+\begin{aligned}
+&M\rho + \sum_{n=1}^{\infty} C_{II1}(n) \cos(k_{IIn} z) I_P(k_{IIn} \rho) \\
+&+ \sum_{n=1}^{\infty} C_{II2}(n) \cos(k_{IIn} z) K_P(k_{IIn} \rho) + \sum_{n=1}^{\infty} C_{II3}(n) e^{k_{IIn} z} J_P(k_{IIn} \rho) \\
+&+ \sum_{n=1}^{\infty} C_{II4}(n) e^{k_{IIn} z} Y_P(k_{IIn} \rho) + \sum_{n=1}^{\infty} C_{II5}(n) e^{-k_{IIn} z} J_P(k_{IIn} \rho) \\
+&+ \sum_{n=1}^{\infty} C_{II6}(n) e^{-k_{IIn} z} Y_P(k_{IIn} \rho)
+\end{aligned} \right] \label{eq:4.22} \\
+\phi_{III} &= \cos(P\theta) \left[ \sum_{n=1}^{\infty} C_{III1}(n) e^{-k_{IIIn} z} J_P(k_{IIIn} \rho) \right] \label{eq:4.23} \\
+\phi_{IV} &= \cos(Ptheta) \left[ \sum_{n=1}^{\infty} C_{IV1}(n) e^{-k_{IVn} z} J_P(k_{IVn} \rho) + \sum_{n=1}^{\infty} C_{IV2}(n) e^{-k_{IVn} z} Y_P(k_{IVn} \rho) \right] \label{eq:4.24}
+\end{align}
+
+Where $M = \frac{M_0 (1 \mp P)}{1 - P^2}$ and $C_{I1}(n)$ to $C_{IV2}(n)$ are the 10 undetermined series of constants.
+
+\subsection{Solving with Hybrid Analytical-Numerical Method}
+In this section, we will utilize the Orthogonal Greedy Algorithm \cite{ref44,ref45} to compute the numerical value of the coefficients.
+
+\subsubsection{Failing of Pure Analytic Model}
+The determination of the coefficients in the infinite sum depends on the self-adjointness of the functions. For a second-order differential equation given by:
+\begin{equation}
+L[u(x)] = \frac{d}{dx} \left[ p(x) \frac{du(x)}{dx} \right] + q(x) u(x) = -\lambda \omega(x) u(x)
+\label{eq:4.25}
+\end{equation}
+
+To let the function be self-adjoint, the Robin boundary condition should be satisfied over the region of interest $[a,b]$, denoted as:
+\begin{equation}
+\left[ p(x) \left( v(x) \frac{du(x)}{dx} - u(x) \frac{dv(x)}{dx} \right) \right]_{a}^{b} = 0
+\label{eq:4.26}
+\end{equation}
+
+This requires selecting an appropriate eigenvalue. However, given that the problem is two-dimensional (disregarding angular dependence), choosing fixed eigenvalues for both dimensions does not ensure self-adjointness in both directions. Additionally, the differential operators involving exponential functions and modified Bessel functions yield negative eigenvalues, which are not suitable for eigen decomposition. These characteristics disallow solving for the coefficients in a traditional way.
+
+\subsubsection{Orthogonal Greedy Algorithm}
+The table below shows the parameters used in the approximation.
+
+\begin{table}[H]
+\centering
+\caption{Parameters for Orthogonal Greedy Algorithm}
+\begin{tabular}{lll}
+\toprule
+Parameter & Definition & Dimension \\
+\midrule
+$N$ & Total collection points & $\mathbb{R}^1$ \\
+$n$ & The size of the eigenvalue (wave number) set & $\mathbb{R}^1$ \\
+$\kappa$ & Basis type & $\mathbb{R}^1$ \\
+$\vec{\phi}_e$ & Exact solution obtained from equation \eqref{eq:3.7} & $\mathbb{R}^N$ \\
+$B$ & Basis Matrix & $\mathbb{R}^{N \times n}$ \\
+$C$ & Coefficient Vector & $\mathbb{R}^n$ \\
+$\epsilon$ & Relative RMS error & $\mathbb{R}^1$ \\
+$\epsilon_{\text{target}}$ & Target relative RMS error & $\mathbb{R}^1$ \\
+$\epsilon_{\text{ortho}}$ & Orthogonality threshold & $\mathbb{R}^1$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Construction of Basis Matrix}
+For each iteration, if there exists, a new basis of type $\kappa$ with eigenvalue $k_n$ will be added to the basis matrix:
+\begin{equation}
+B^{(n)} = \begin{bmatrix} b_{\kappa 1} & b_{\kappa 2} & \ldots & b_{\kappa n} \end{bmatrix}
+\label{eq:4.27}
+\end{equation}
+
+Where $b_{\kappa n}$ is type $\kappa$ basis $N \times 1$ vector with eigenvalue $k_n$ evaluated on all the collection points.
+
+\paragraph{Choice of Orthogonal Basis}
+The basis matrix is decomposed via singular value decomposition (SVD), given by \cite{ref43,ref46,ref47}:
+\begin{equation}
+B^{(n)} = U^{(n)} \Sigma^{(n)} (V^{(n)})^T
+\label{eq:4.28}
+\end{equation}
+
+Where $r = \text{rank}(B^{(n)})$, $U^{(n)} \in \mathbb{R}^{N \times r}$, $\Sigma^{(n)} = \text{diag}(\sigma_1, \sigma_2, \ldots, \sigma_r)$ and $V^{(n)} \in \mathbb{R}^{r \times n}$.
+
+The column space projection of the matrix $B^{(n)}$ is given by:
+\begin{equation}
+P^{(n)} = U^{(n)} (U^{(n)})^T
+\label{eq:4.29}
+\end{equation}
+
+For a new candidate vector $\vec{v}$, its orthogonal component with respect to the matrix $B_{\kappa}^{(n)}$ is given by:
+\begin{equation}
+\vec{v}_{\perp} = (I - U^{(n)} (U^{(n)})^T) \vec{v}
+\label{eq:4.30}
+\end{equation}
+
+Our goal is to find vectors that can form a new basis to avoid redundant basis. Therefore, we will accept the candidate vector $\vec{v}$ if the ratio of the Euclidean norm of the orthogonal term and the whole term exceeds the threshold $\epsilon_{\text{ortho}}$, denoted as:
+\begin{equation}
+\frac{\|\vec{v}_{\perp}\|}{\|\vec{v}\|} > \epsilon_{\text{ortho}}
+\label{eq:4.31}
+\end{equation}
+
+If \eqref{eq:4.31} is satisfied, the new Basis matrix will become:
+\begin{equation}
+B^{(n+1)} = \begin{bmatrix} B^{(n)} & \vec{v} \end{bmatrix}
+\label{eq:4.32}
+\end{equation}
+
+\paragraph{Find Coefficient Vector Through Residue Minimization}
+The Residue at the $n^{\text{th}}$ iteration is defined as:
+\begin{equation}
+\vec{r}_n = B^{(n)} C^{(n)} - \vec{\phi}_e
+\label{eq:4.33}
+\end{equation}
+
+The coefficient matrix is obtained by solving the regularized least square problem using Tikhonov regularization \cite{ref49,ref50}:
+\begin{equation}
+C^{(n)} = \arg \min \left\{ \| B^{(n)} C^{(n)} - \vec{\phi}_e \|^2 + \lambda^2 \| C^{(n)} \|^2 \right\}
+\label{eq:4.34}
+\end{equation}
+
+The term $\lambda^2 \| C^{(n)} \|^2$ is a penalty term used for punishing large coefficients term to prevent overfitting.
+
+Denote:
+\begin{equation}
+M(C^{(n)}) = \| B^{(n)} C^{(n)} - \vec{\phi}_e \|^2 + \lambda^2 \| C^{(n)} \|^2
+\label{eq:4.35}
+\end{equation}
+
+By expanding the terms, we arrive:
+\begin{align}
+M(C^{(n)}) &= (B^{(n)} C^{(n)} - \vec{\phi}_e)^T (B^{(n)} C^{(n)} - \vec{\phi}_e) + \lambda^2 (C^{(n)})^T (C^{(n)}) \nonumber \\
+&= (C^{(n)})^T (B^{(n)})^T B^{(n)} C^{(n)} - 2(C^{(n)})^T (B^{(n)})^T \vec{\phi}_e + \vec{\phi}_e^T \vec{\phi}_e + \lambda^2 (C^{(n)})^T C^{(n)}
+\label{eq:4.36}
+\end{align}
+
+By performing matrix derivatives:
+\begin{equation}
+\frac{dM}{dC^{(n)}} = 2(B^{(n)})^T B^{(n)} C^{(n)} - 2(B^{(n)})^T \vec{\phi}_e + 2\lambda^2 C^{(n)}
+\label{eq:4.37}
+\end{equation}
+
+Setting the derivative to 0 gives us the following coefficient matrix:
+\begin{equation}
+C^{(n)} = V^{(n)} (\Sigma^{(n)2} + \lambda^2 I)^{-1} \Sigma^{(n)} (U^{(n)})^T \vec{\phi}_e
+\label{eq:4.38}
+\end{equation}
+
+$(\Sigma^{(n)2} + \lambda^2 I)^{-1} \Sigma^{(n)}$ is a diagonal matrix where its $i^{\text{th}}$ diagonal element is evaluated as:
+\begin{equation}
+\frac{\sigma_i}{\sigma_i^2 + \lambda^2}
+\label{eq:4.39}
+\end{equation}
+
+The algorithm will continue to run until the target RMS error is reached, denoted as:
+\begin{equation}
+\epsilon = \frac{\|\vec{r}_{n+1}\|}{\|\vec{\phi}_e\|} < \epsilon_{\text{target}}
+\label{eq:4.40}
+\end{equation}
+
+The detailed results and the MATLAB code will be provided in Appendix 3.
+
+
+\subsection{Implementation and Results of the Hybrid Analytical-Numerical Method}
+
+We implemented the algorithm for the external configuration of the Halbach rotor.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{figure4_9}
+\caption{Illustration of the coefficient's magnitude against wave number and basis type for both internal and external rotor in $\Omega_{IV}$}
+\end{figure}
+
+\subsection{Overall Evaluation}
+\subsubsection{Advantages Over Pure Analytical and Numerical Model}
+This study introduces a robust 3-D analytical-numerical framework for modelling the magnetic scalar potential of a Halbach rotor using the Laplace-Poisson approach. The model goes beyond conventional 2-D analyses.
+
+In contrast to traditional analytical models, this approach employs a hybrid methodology that combines analytical functions with algorithms for numerical coefficients. This enables analysis of the field in a frequency context. Additionally, the analytical model facilitates extensive analysis across various coordinate points and systems, offering greater analytical flexibility compared to standard numerical methods.
+
+\subsubsection{Future Works}
+A pure analytical model is not derived as it failed for the non-self-adjointness and negative eigenvalues. This can be proven by our numerical results, as the chosen eigenvalues show different behaviours and properties in different regions that differ from traditional eigenvalue selection. Further investment should be examined such that we can construct complicated analytic models in a 3D sense.
+\newpage
+\section{Governing Equations for Magnetic Source on Conductive Plate}
+
+The model is divided into three regions: $\Omega_1$, $\Omega_2$, and $\Omega_3$, as shown in the graph below. Here, $\Omega_2$ represents the conductive region, while $\Omega_1$ and $\Omega_3$ are the areas above and below the conductive plate, respectively. We denote the boundaries between the regions as $\Gamma_1$ and $\Gamma_2$ for the analysis of boundary conditions. We employ a moving coordinate system relative to the rotor, with the origin positioned at the center of the rotor.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{figure5_1}
+\caption{Illustration of the boundary of an external operating Halbach rotor modified from \cite{ref18}}
+\end{figure}
+
+The following table denotes the magnetic components used in the analysis.
+
+\begin{table}[H]
+\centering
+\caption{Magnetic Components for Conductive Plate Analysis}
+\begin{tabular}{lll}
+\toprule
+Parameter & Description & Region \\
+\midrule
+$\vec{B}^s$ & Source field of the Halbach rotor & $\Omega_1$ \\
+$\vec{A}$ & Magnetic vector potential & $\Omega_2$ \\
+$\phi_n$ & Magnetic scalar potential & $\Omega_1$, $\Omega_3$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Conductive Plate Region}
+Using the differential form of Maxwell's equation,
+\begin{align}
+\vec{\nabla} \times (\vec{\nabla} \times \vec{A}) &= \mu_0 \sigma (\vec{E} + \vec{v} \times \vec{B}) \label{eq:5.1} \\
+\vec{E} &= -\vec{\nabla} V - \frac{\partial \vec{A}}{\partial t} \label{eq:5.2}
+\end{align}
+
+Considering the Coulomb gauge $\vec{\nabla} \cdot \vec{A} = 0$ and setting the gradient of electric potential to 0, this equation is obtained \cite{ref31}:
+\begin{equation}
+\nabla^2 \vec{A} = \mu_0 \sigma \left( \frac{\partial \vec{A}}{\partial t} + (\vec{v} \cdot \vec{\nabla}) \vec{A} \right) \label{eq:5.3}
+\end{equation}
+
+Where $\vec{v}$ is the translational velocity of the magnetic source. The term $\frac{\partial \vec{A}}{\partial t} + (\vec{v} \cdot \vec{\nabla}) \vec{A}$ is the convective derivative of $\vec{A}$, written as the total time derivative $\frac{d\vec{A}}{dt}$. It represents the rate of change of magnetic vector potential at the moving location of the particle for time \cite{ref14}. The motional effect of the magnetic source moving above the conductive plate can be described by this convective-diffusion equation \cite{ref1}.
+
+To account for the time component, we can separate the source angular velocity by
+\begin{equation}
+\vec{A}(x,y,z,t) = \vec{A}(x,y,z) e^{i\omega_e t} \label{eq:5.4}
+\end{equation}
+
+Where $\omega_e$ is the magnetic source frequency. It is related to the angular velocity of the Halbach rotor $\omega_m$ from Bird and Lipo (2008):
+\begin{equation}
+\omega_m = \frac{\omega_e}{P} \label{eq:5.5}
+\end{equation}
+
+Where $P$ is the number of pole pairs of the Halbach rotor. By substituting \eqref{eq:5.4} into the differential equation \eqref{eq:5.3} and assuming the rotor travels along the $x$ axis,
+\begin{equation}
+\nabla^2 \vec{A} = \mu_0 \sigma \left( i\omega_e \vec{A} + v_x \frac{\partial \vec{A}}{\partial x} \right), \quad \text{in } \Omega_2 \label{eq:5.6}
+\end{equation}
+
+\subsection{Non-conductive Region}
+Considering the eddy current and the induced magnetic field, we can express the total magnetic field as the sum of the sources \cite{ref3}:
+\begin{equation}
+\vec{B}(x,y,z,t) = \vec{B}^s(x,y,z,t) + \vec{B}^r(x,y,z,t) \label{eq:5.7}
+\end{equation}
+
+Where $\vec{B}^s$ is the magnetic source from the Halbach Rotor and $\vec{B}^r$ is the magnetic source from the induced eddy current. The induced source can be further expressed in terms of the magnetic scalar potential $\phi_n$:
+\begin{equation}
+\vec{B}^r = -\mu_0 \vec{\nabla} \phi_n, \quad n \in \{1,3\} \label{eq:5.8}
+\end{equation}
+
+Where $n$ corresponds to the marked number of the non-conducting region. By taking the divergence from both sides in Maxwell's equation $\vec{\nabla} \cdot \vec{B} = 0$, an equation for the magnetic scalar potential is obtained:
+\begin{equation}
+\nabla^2 \phi_n = 0 \label{eq:5.9}
+\end{equation}
+
+The time-dependent term equivalent to equation \eqref{eq:5.4} can be further separated:
+\begin{equation}
+\phi_n(x,y,z,t) = \phi_n(x,y,z) e^{i\omega_e t} \label{eq:5.10}
+\end{equation}
+
+\subsection{Boundary Conditions}
+In this section, to simplify calculations, the magnetic permittivity is assumed to be the same as the one located in vacuum for both the air and the conductive plate, i.e., $\mu = \mu_0$. $\vec{B}^s(x,y,z,t)$, $\vec{B}^r(x,y,z,t)$, $\vec{B}^t(x,y,z,t)$ are denoted as the incident (source), reflected (induced by eddy current), and transmitted magnetic field, respectively. By considering the boundary conditions on $\Gamma_1$,
+\begin{equation}
+\vec{B}^t(x,-h_r,z,t) = \vec{B}^s(x,-h_r,z,t) + \vec{B}^r(x,-h_r,z,t) \label{eq:5.11}
+\end{equation}
+
+Where $h_r$ is the height of the rotor above the conductive plate. Rewriting it in terms of the magnetic vector and scalar potential in each direction of the boundary $\Gamma_1$:
+\begin{align}
+\left. \frac{\partial \vec{A}_z(x,y,z,t)}{\partial y} \right|_{y=-h_r} - \frac{\partial \vec{A}_y(x,-h_r,z,t)}{\partial z} &= \vec{B}_x^s(x,-h_r,z,t) - \mu_0 \frac{\partial \phi_1(x,-h_r,t)}{\partial x} \label{eq:5.12} \\
+\frac{\partial \vec{A}_x(x,-h_r,z,t)}{\partial z} - \frac{\partial \vec{A}_z(x,-h_r,z,t)}{\partial x} &= \vec{B}_y^s(x,-h_r,z,t) - \mu_0 \left. \frac{\partial \phi_1(x,y,t)}{\partial y} \right|_{y=-h_r} \label{eq:5.13} \\
+\frac{\partial \vec{A}_y(x,-h_r,z,t)}{\partial x} - \left. \frac{\partial \vec{A}_x(x,y,z,t)}{\partial y} \right|_{y=-h_r} &= \vec{B}_z^s(x,-h_r,z,t) - \mu_0 \frac{\partial \phi_1(x,-h_r,t)}{\partial z} \label{eq:5.14}
+\end{align}
+
+Since there are no source fields located in $\Omega_3$, the boundary conditions for $\Gamma_2$ are
+\begin{align}
+\left. \frac{\partial \vec{A}_z(x,y,z,t)}{\partial y} \right|_{y=-(h_r+d_p)} - \frac{\partial \vec{A}_y(x,-(h_r+d_p),z,t)}{\partial z} &= -\mu_0 \frac{\partial \phi_3(x,-(h_r+d_p),t)}{\partial x} \label{eq:5.15} \\
+\frac{\partial \vec{A}_x(x,-(h_r+d_p),z,t)}{\partial z} - \frac{\partial \vec{A}_z(x,-(h_r+d_p),z,t)}{\partial x} &= -\mu_0 \left. \frac{\partial \phi_3(x,y,t)}{\partial y} \right|_{y=-(h_r+d_p)} \label{eq:5.16} \\
+\frac{\partial \vec{A}_y(x,-(h_r+d_p),z,t)}{\partial x} - \left. \frac{\partial \vec{A}_x(x,y,z,t)}{\partial y} \right|_{y=-(h_r+d_p)} &= -\mu_0 \frac{\partial \phi_3(x,-(h_r+d_p),t)}{\partial z} \label{eq:5.17}
+\end{align}
+
+It is assumed that the plate is long enough such that the magnetic field at the edge of the plate is zero:
+\begin{equation}
+\vec{B}(\pm L, y, \pm L, t) = 0 \label{eq:5.18}
+\end{equation}
+
+Where $L$ is the half-length of the plate.
+
+To ensure the uniqueness of the solution \cite{ref1,ref26},
+\begin{equation}
+\hat{n}_c \cdot \vec{A} = 0, \quad \text{on } \Gamma_1, \Gamma_2 \label{eq:5.19}
+\end{equation}
+
+Which automatically implies that
+\begin{equation}
+\hat{n}_c \cdot \vec{J} = 0, \quad \text{on } \Gamma_1, \Gamma_2 \label{eq:5.20}
+\end{equation}
+
+Where $\vec{J}$ is the eddy current density of the plate.
+\newpage
+\section{Fourier Analysis on Problem Region}
+
+To streamline the differential expressions of the problem region and the boundary equations, the Fourier transform in the spatial domain is employed (introduced in Paudel and Bird (2011)) after generalization in the 3D space domain.
+
+The Fourier transformed spatial domain is given by
+\begin{align}
+\tilde{\vec{A}}(\xi,y,\zeta,t) &= \int_{-\infty}^{\infty} \int_{-\infty}^{\infty} \vec{A}(x,y,z,t) e^{i\xi x} e^{i\zeta z}  dx  dz \label{eq:6.1} \\
+\tilde{\phi}_n(\xi,y,\zeta,t) &= \int_{-\infty}^{\infty} \int_{-\infty}^{\infty} \phi_n(x,y,z,t) e^{i\xi x} e^{i\zeta z}  dx  dz \label{eq:6.2}
+\end{align}
+
+\subsection{Transformed Governing Equations}
+By considering \eqref{eq:6.1}, the transformed magnetic vector potential equation \eqref{eq:5.6} in $\Omega_2$ is given by
+\begin{equation}
+\frac{\partial^2 \tilde{\vec{A}}}{\partial y^2} = \gamma^2 \tilde{\vec{A}} \label{eq:6.3}
+\end{equation}
+
+Where 
+\begin{equation}
+\gamma^2 = \xi^2 + \zeta^2 + i\mu_0 \sigma (\omega_e - v_x \xi) \label{eq:6.4}
+\end{equation}
+
+The proof of the Fourier transformed differential term is given in Appendix 2.
+
+Solving equation \eqref{eq:6.3} gives 
+\begin{equation}
+\tilde{\vec{A}} = \begin{bmatrix}
+\alpha_x(\xi,\zeta) e^{\gamma y} + \beta_x(\xi,\zeta) e^{-\gamma y} \\
+\alpha_y(\xi,\zeta) e^{\gamma y} + \beta_y(\xi,\zeta) e^{-\gamma y} \\
+\alpha_z(\xi,\zeta) e^{\gamma y} + \beta_z(\xi,\zeta) e^{-\gamma y}
+\end{bmatrix} e^{i\omega_e t} \label{eq:6.5}
+\end{equation}
+
+The same procedure is done on equation \eqref{eq:5.9}. By considering the boundary conditions in $\Omega_1$ and $\Omega_3$, one will arrive at
+\begin{equation}
+\frac{\partial^2 \tilde{\phi}_n}{\partial y^2} = k^2 \tilde{\phi}_n \label{eq:6.6}
+\end{equation}
+
+\begin{equation}
+\tilde{\phi}_1(\xi,y,\zeta,t) = \upsilon(\xi,\zeta) e^{-ky} e^{i\omega_e t}, \quad \tilde{\phi}_3(\xi,y,\zeta,t) = \nu(\xi,\zeta) e^{ky} e^{i\omega_e t} \label{eq:6.7}
+\end{equation}
+
+Where
+\begin{equation}
+k^2 = \xi^2 + \zeta^2 \label{eq:6.8}
+\end{equation}
+
+\subsection{Transformed Boundary Equations}
+The transformed boundary equations are
+\begin{align}
+&\gamma(\alpha_z e^{-\gamma h_r} - \beta_z e^{\gamma h_r}) - i\zeta(\alpha_y e^{-\gamma h_r} + \beta_y e^{\gamma h_r}) = \tilde{B}_x^s(\xi,y=-h_r,\zeta) - i\mu_0 \xi \upsilon e^{kh_r} \label{eq:6.9} \\
+&i\zeta(\alpha_x e^{-\gamma h_r} + \beta_x e^{\gamma h_r}) - i\xi(\alpha_z e^{-\gamma h_r} + \beta_z e^{\gamma h_r}) = \tilde{B}_y^s(\xi,y=-h_r,\zeta) + \mu_0 k \upsilon e^{kh_r} \label{eq:6.10} \\
+&i\xi(\alpha_y e^{-\gamma h_r} + \beta_y e^{\gamma h_r}) - \gamma(\alpha_x e^{-\gamma h_r} - \beta_x e^{\gamma h_r}) = \tilde{B}_z^s(\xi,y=-h_r,\zeta) - i\mu_0 \zeta \upsilon e^{kh_r} \label{eq:6.11} \\
+&\gamma(\alpha_z e^{-\gamma(h_r+d_p)} - \beta_z e^{\gamma(h_r+d_p)}) - i\zeta(\alpha_y e^{-\gamma(h_r+d_p)} + \beta_y e^{\gamma(h_r+d_p)}) = -i\mu_0 \xi \nu e^{-k(h_r+d_p)} \label{eq:6.12} \\
+&i\zeta(\alpha_x e^{-\gamma(h_r+d_p)} + \beta_x e^{\gamma(h_r+d_p)}) - i\xi(\alpha_z e^{-\gamma(h_r+d_p)} + \beta_z e^{\gamma(h_r+d_p)}) = -\mu_0 k \nu e^{-k(h_r+d_p)} \label{eq:6.13} \\
+&i\xi(\alpha_y e^{-\gamma(h_r+d_p)} + \beta_y e^{\gamma(h_r+d_p)}) - \gamma(\alpha_x e^{-\gamma(h_r+d_p)} - \beta_x e^{\gamma(h_r+d_p)}) = -i\mu_0 \zeta \nu e^{-k(h_r+d_p)} \label{eq:6.14}
+\end{align}
+
+Where $\tilde{\vec{B}}^s$ is the Fourier transformed rotor source with time dependency excluded.
+
+The transformed constraint \eqref{eq:5.19} gives
+\begin{align}
+\alpha_y(\xi,\zeta) e^{-\gamma h_r} + \beta_y(\xi,\zeta) e^{-\gamma h_r} &= 0 \label{eq:6.15} \\
+\alpha_y(\xi,\zeta) e^{-\gamma(h_r+d_p)} + \beta_y(\xi,\zeta) e^{-\gamma(h_r+d_p)} &= 0 \label{eq:6.16}
+\end{align}
+
+The solved coefficients are provided in Appendix 4.
+
+\subsection{Gauge Transformation}
+To derive equation \eqref{eq:5.3}, the Coulomb gauge condition $\vec{\nabla} \cdot \vec{A} = 0$ was employed, and the gradient of the electric potential was assumed to be zero. As these initial assumptions may not be satisfied, a gauge transformation can be made to ensure consistency with the chosen gauge.
+
+The gauge transform yields \cite{ref14}
+\begin{equation}
+\vec{A}' = \vec{A} + \vec{\alpha}, \quad V' = V + \beta \label{eq:6.17}
+\end{equation}
+
+Letting $\vec{\alpha} = \vec{\nabla} \lambda$ for some scalar function $\lambda$:
+\begin{equation}
+\vec{A}' = \vec{A} + \vec{\nabla} \lambda, \quad V' = V - \frac{\partial \lambda}{\partial t} \label{eq:6.18}
+\end{equation}
+
+Where
+\begin{equation}
+\vec{\nabla} \left( \beta + \frac{\partial \lambda}{\partial t} \right) = 0, \quad \vec{\nabla} \times (\vec{\nabla} \lambda) = 0 \label{eq:6.19}
+\end{equation}
+
+This ensures the electric field and magnetic field consistency respectively.
+
+The transformed Coulomb gauge gives
+\begin{equation}
+-i\xi(\alpha_x(\xi,\zeta) e^{\gamma y} + \beta_x(\xi,\zeta) e^{-\gamma y}) - i\zeta(\alpha_z(\xi,\zeta) e^{\gamma y} + \beta_z(\xi,\zeta) e^{-\gamma y}) + \nabla^2 \tilde{\lambda} = 0 \label{eq:6.20}
+\end{equation}
+
+\begin{equation}
+\tilde{\lambda} = \underbrace{A e^{ky} + B e^{-ky}}_{\text{homogeneous}} + \underbrace{C_1 e^{\gamma y} + C_2 e^{-\gamma y}}_{\text{particular}} \label{eq:6.21}
+\end{equation}
+
+Where $\tilde{\lambda}$ is the Fourier transformed scalar function, and
+\begin{equation}
+C_1 = \frac{i (\xi \alpha_x(\xi,\zeta) + \zeta \alpha_z(\xi,\zeta))}{\gamma^2 - k^2}, \quad C_2 = \frac{i (\xi \beta_x(\xi,\zeta) + \zeta \beta_z(\xi,\zeta))}{\gamma^2 - k^2} \label{eq:6.22}
+\end{equation}
+
+The condition $\frac{\partial \lambda}{\partial t} = 0$ is automatically satisfied.
+
+The coefficients of the homogeneous solution can be found by the boundary conditions \eqref{eq:5.19}, giving
+\begin{equation}
+\left. \frac{\partial \tilde{\lambda}}{\partial y} \right|_{y=-h_r} = 0, \quad \left. \frac{\partial \tilde{\lambda}}{\partial y} \right|_{y=-(h_r+d_p)} = 0 \label{eq:6.23}
+\end{equation}
+
+The solved coefficients are
+\begin{align}
+A &= \frac{\gamma}{k \sinh(k d_p)} \left\{ C_2 e^{(k+\gamma)(h_r+d_p/2)} \sinh\left[ \frac{(k-\gamma) d_p}{2} \right] - C_1 e^{(k-\gamma)(h_r+d_p/2)} \sinh\left[ \frac{(k+\gamma) d_p}{2} \right] \right\} \label{eq:6.24} \\
+B &= \frac{\gamma}{k \sinh(k d_p)} \left\{ C_1 e^{-(k+\gamma)(h_r+d_p/2)} \sinh\left[ \frac{(k-\gamma) d_p}{2} \right] - C_2 e^{-(k-\gamma)(h_r+d_p/2)} \sinh\left[ \frac{(k+\gamma) d_p}{2} \right] \right\} \label{eq:6.25}
+\end{align}
+
+Therefore, the transformed vector potentials are
+\begin{equation}
+\tilde{A}_x' = \tilde{A}_x - i\xi \tilde{\lambda}, \quad \tilde{A}_y' = 0, \quad \tilde{A}_z' = \tilde{A}_z - i\zeta \tilde{\lambda} \label{eq:6.26}
+\end{equation}
+
+The expression for the magnetic scalar potential in each region is obtained by applying the inverse Fourier transform.
+\begin{equation}
+\vec{A} = \frac{1}{4\pi^2} \begin{bmatrix}
+\int_{-\infty}^{\infty} \int_{-\infty}^{\infty} (\tilde{A}_x - i\xi \tilde{\lambda}) e^{-i\xi x} e^{-i\zeta z}  d\xi  d\zeta \\
+0 \\
+\int_{-\infty}^{\infty} \int_{-\infty}^{\infty} (\tilde{A}_z - i\zeta \tilde{\lambda}) e^{-i\xi x} e^{-i\zeta z}  d\xi  d\zeta
+\end{bmatrix} \label{eq:6.27}
+\end{equation}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.45\textwidth]{figure6_1a}
+\includegraphics[width=0.45\textwidth]{figure6_1b}
+\caption{The magnetic vector potential on the conductive plate for (a) and (b) respectively}
+\end{figure}
+
+
+
+\subsection{Magnetic Force}
+The components of the Maxwell stress tensor are expressed as \cite{ref14}
+\begin{equation}
+T_{ij} = \frac{1}{\mu_0} \left( B_i B_j - \frac{1}{2} \delta_{ij} B^2 \right) \label{eq:6.28}
+\end{equation}
+
+The total magnetic force is given by
+\begin{equation}
+\vec{F} = \underbrace{\oiint_{a'} \vec{T} \cdot d\vec{a}'}_{\text{static force}} - \underbrace{\epsilon_0 \mu_0 \frac{d}{dt} \iiint_{\tau'} \vec{S}  d\tau'}_{\text{loss}} \label{eq:6.29}
+\end{equation}
+
+Where $d\vec{a}' = dx  dz  \hat{y}$ is the differential area vector of the plate. The loss term will average out to 0 in the steady state. The remaining components are
+\begin{equation}
+\vec{F} = \oiint_{a'} \vec{T} \cdot d\vec{a}' \label{eq:6.30}
+\end{equation}
+
+For the static force component, the force in each direction is expressed as
+\begin{align}
+F_x &= \frac{1}{\mu_0} \text{Re} \left[ \int_{-\infty}^{\infty} \int_{-\infty}^{\infty} B_x \overline{B}_y  dx  dz \right] \label{eq:6.31} \\
+F_y &= \frac{1}{2\mu_0} \text{Re} \left[ \int_{-\infty}^{\infty} \int_{-\infty}^{\infty} (B_y \overline{B}_y - B_x \overline{B}_x - B_z \overline{B}_z)  dx  dz \right], \quad \text{on } \Gamma_1 \label{eq:6.32}
+\end{align}
+
+The $z$ direction force is neglected due to axial symmetry.
+
+By applying Parseval's theorem, we can bypass the need for an additional inverse Fourier transform. The force components are now represented as
+\begin{align}
+F_x &= \frac{1}{4\pi^2 \mu_0} \text{Re} \left[ \int_{-\infty}^{\infty} \int_{-\infty}^{\infty} \tilde{B}_x \overline{\tilde{B}}_y  d\xi  d\zeta \right] \label{eq:6.33} \\
+F_y &= \frac{1}{8\pi^2 \mu_0} \text{Re} \left[ \int_{-\infty}^{\infty} \int_{-\infty}^{\infty} (\tilde{B}_y \overline{\tilde{B}}_y - \tilde{B}_x \overline{\tilde{B}}_x - \tilde{B}_z \overline{\tilde{B}}_z)  d\xi  d\zeta \right], \quad \text{on } \Gamma_1 \label{eq:6.34}
+\end{align}
+
+Where the transformed magnetic field is given by
+\begin{equation}
+\tilde{\vec{B}} = \begin{bmatrix}
+\frac{\partial \tilde{A}_z}{\partial y} & i(\xi \tilde{A}_z - \zeta \tilde{A}_x) & -\frac{\partial \tilde{A}_x}{\partial y}
+\end{bmatrix} \label{eq:6.35}
+\end{equation}
+
+\subsection{Power Loss}
+The total power delivered by the rotating rotor is given by
+\begin{equation}
+P = \int_{\Gamma_1} \vec{S} \cdot d\Gamma_1 \label{eq:6.36}
+\end{equation}
+
+Where the Poynting vector $\vec{S}$ is calculated by
+\begin{equation}
+\vec{S} = \frac{1}{2} \vec{E} \times \overline{\vec{H}} = -\frac{1}{2\mu_0} \frac{\partial \vec{A}}{\partial t} \times \overline{\vec{B}} = -\frac{i\omega_e}{2\mu_0} \vec{A} \times \overline{\vec{B}} \label{eq:6.37}
+\end{equation}
+
+The $y$ direction Poynting vector is calculated by
+\begin{equation}
+\vec{S} \cdot \hat{y} = \frac{i\omega_e}{2\mu_0} (A_x \overline{B}_z - A_z \overline{B}_x) \label{eq:6.38}
+\end{equation}
+
+Using Parseval's theorem, as demonstrated in the previous derivation, the total power can be expressed as
+\begin{equation}
+P = \text{Re} \left[ \frac{i\omega_e}{8\pi^2 \mu_0} \int_{-\infty}^{\infty} \int_{-\infty}^{\infty} (\tilde{A}_x \overline{\tilde{B}}_z - \tilde{A}_z \overline{\tilde{B}}_x)  d\xi  d\zeta \right] \label{eq:6.39}
+\end{equation}
+
+The power loss can be calculated as the difference between the total power and the work done on the rotor, expressed as
+\begin{equation}
+P_{\text{loss}} = P - \vec{F} \cdot \vec{v} = P - F_x v_x \label{eq:6.40}
+\end{equation}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.45\textwidth]{figure6_2a}
+\includegraphics[width=0.45\textwidth]{figure6_2b}
+\caption{The total power and power loss (a) and (b) respectively}
+\end{figure}
+
+\newpage
+
+\section{Numerical Approximation by Finite Element Method}
+
+To validate our general 3-D model, the finite element method (FEM) is adapted to rigorously compare fluctuations between the analytical and numerical results. The finite element method is particularly propitious in handling complex geometries and boundary conditions, which are often present in three-dimensional modelling.
+
+By using FEM, the model is discretized into smaller, manageable elements, allowing for a good approximation of physical properties under various loading conditions.
+
+\subsection{Weak Form Formulation}
+The weak formation of equation \eqref{eq:5.9} in the region $\Omega_1$ is formulated:
+\begin{equation}
+\int_{\Omega_1} N_{\Omega_1} \nabla^2 \phi_1  d\Omega_1 = 0 \label{eq:7.1}
+\end{equation}
+
+Where $N_{\Omega_1}$ is the element shape function defined in the region $\Omega_1$.
+
+By Green's first identity,
+\begin{equation}
+N_{\Omega_1} \nabla^2 \phi_1 = N_{\Omega_1} \vec{\nabla} \phi_1 - \vec{\nabla} N_{\Omega_1} \vec{\nabla} \phi_1 \label{eq:7.2}
+\end{equation}
+
+Substituting back into the equation \eqref{eq:7.1}, the equation becomes \cite{ref1,ref23}
+\begin{equation}
+\int_{\Gamma_1} N_{\Omega_1} \vec{\nabla} \phi_1 \cdot \hat{n}_c  d\Gamma_1 - \int_{\Omega_1} \vec{\nabla} N_{\Omega_1} \cdot \vec{\nabla} \phi_1  d\Omega_1 = 0 \label{eq:7.3}
+\end{equation}
+
+The weak form of the magnetic vector potential in equation \eqref{eq:5.6} in the region $\Omega_2$ is given by 
+\begin{equation}
+\int_{\Omega_2} N_{\Omega_2} \nabla^2 \vec{A}  d\Omega_2 = \int_{\Omega_2} N_{\Omega_2} \mu_0 \sigma \left( i\omega_e \vec{A} + v_x \frac{\partial \vec{A}}{\partial x} \right)  d\Omega_2 \label{eq:7.4}
+\end{equation}
+
+Where $N_{\Omega_2}$ is the element shape function defined in the region $\Omega_2$.
+
+By Green's first identity,
+\begin{multline}
+-\int_{\Gamma_1} N_{\Omega_2} \vec{\nabla} \vec{A} \cdot \hat{n}_c  d\Gamma_1 + \int_{\Omega_2} \vec{\nabla} N_{\Omega_2} \cdot \vec{\nabla} \vec{A}  d\Omega_2 \\
++ \mu_0 \sigma \int_{\Omega_2} N_{\Omega_2} \left( i\omega_e \vec{A} + v_x \frac{\partial \vec{A}}{\partial x} \right)  d\Omega_2 = 0 \label{eq:7.5}
+\end{multline}
+
+The air and conductive plate regions are interconnected through the application of interface conditions \cite{ref23,ref24}, the boundary term vanishes. For each direction, by considering equation \eqref{eq:5.19} \eqref{eq:7.5}, we enforce the condition \eqref{eq:5.19} weakly into the equation in each direction, given by \cite{ref1}
+\begin{align}
+&\int_{\Gamma_1} N_x \left[ \left( \frac{\partial A_x}{\partial x} + A_x \right) \vec{n}_{cx} + \frac{\partial A_x}{\partial y} \vec{n}_{cy} + \frac{\partial A_x}{\partial z} \vec{n}_{cz} \right] d\Gamma_1 = 0 \label{eq:7.6} \\
+&\int_{\Gamma_1} N_y \left[ \frac{\partial A_y}{\partial x} \vec{n}_{cx} + \left( \frac{\partial A_y}{\partial y} + A_y \right) \vec{n}_{cy} + \frac{\partial A_y}{\partial z} \vec{n}_{cz} \right] d\Gamma_1 = 0 \label{eq:7.7} \\
+&\int_{\Gamma_1} N_z \left[ \frac{\partial A_z}{\partial x} \vec{n}_{cx} + \frac{\partial A_z}{\partial y} \vec{n}_{cy} + \left( \frac{\partial A_z}{\partial z} + A_z \right) \vec{n}_{cz} \right] d\Gamma_1 = 0 \label{eq:7.8}
+\end{align}
+
+Where $\vec{n}_{cx}$, $\vec{n}_{cy}$, $\vec{n}_{cz}$ are the normal vectors of each component and for our problem
+\begin{equation}
+|\vec{n}_{cy}| = |\hat{n}_c| = 1, \quad |\vec{n}_{cx}| = |\vec{n}_{cz}| = 0 \label{eq:7.9}
+\end{equation}
+
+The terms with normal vector $\vec{n}_{cx}$ and $\vec{n}_{cz}$ become trivial. This does the same effect as the gauge transformation we did to ensure that the solution is unique without variation.
+
+Considering $\vec{\nabla} \cdot \vec{A} = 0$ and boundary conditions \eqref{eq:5.12}--\eqref{eq:5.14}, the equations can be expressed in terms of the magnetic scalar potential and source field, respectively.
+\begin{align}
+&\int_{\Gamma_1} N_x \left[ \begin{aligned}
+&\left( A_x - \frac{\partial A_y}{\partial y} - \frac{\partial A_z}{\partial z} \right) \vec{n}_{cx} + \left( \frac{\partial A_y}{\partial x} + \mu_0 \frac{\partial \phi_1}{\partial z} - \vec{B}_z^s \right) \vec{n}_{cy} \\
+&+ \left( \frac{\partial A_z}{\partial y} - \mu_0 \frac{\partial \phi_1}{\partial y} + \vec{B}_y^s \right) \vec{n}_{cz}
+\end{aligned} \right] d\Gamma_1 = 0 \label{eq:7.10} \\
+&\int_{\Gamma_1} N_y \left[ \begin{aligned}
+&\left( \frac{\partial A_x}{\partial y} - \mu_0 \frac{\partial \phi_1}{\partial z} + \vec{B}_z^s \right) \vec{n}_{cx} + \left( A_y - \frac{\partial A_x}{\partial x} - \frac{\partial A_z}{\partial z} \right) \vec{n}_{cy} \\
+&+ \left( \frac{\partial A_z}{\partial y} + \mu_0 \frac{\partial \phi_1}{\partial x} - \vec{B}_x^s \right) \vec{n}_{cz}
+\end{aligned} \right] d\Gamma_1 = 0 \label{eq:7.11} \\
+&\int_{\Gamma_1} N_z \left[ \begin{aligned}
+&\left( \frac{\partial A_x}{\partial z} + \mu_0 \frac{\partial \phi_1}{\partial y} - \vec{B}_y^s \right) \vec{n}_{cx} + \left( \frac{\partial A_y}{\partial z} + \vec{B}_x^s - \mu_0 \frac{\partial \phi_1}{\partial x} \right) \vec{n}_{cy} \\
+&+ \left( A_z - \frac{\partial A_x}{\partial x} - \frac{\partial A_y}{\partial y} \right) \vec{n}_{cz}
+\end{aligned} \right] d\Gamma_1 = 0 \label{eq:7.12}
+\end{align}
+
+\subsection{Upwinding}
+In this section, we refer to Bird and Lipo (2008) for the weighting procedure utilized in the finite element method. Since equation \eqref{eq:5.6} contains both convection and diffusive contributions, a significant issue exists in the quadrature-upwind scheme, which can experience spurious crosswind effects that compromise the accuracy of the numerical solution. To address this problem, the implementation of the Streamline-Upwind Petrov-Galerkin (SUPG) method is proposed. This approach has been shown to be free from numerical inaccuracies when computing multidimensional problems. SUPG involves selecting a weighting function that differs from the shape function, where the weighting function is defined as 
+\begin{equation}
+W_i = N_i + p_i, \quad \text{where } i \in \{x,y,z\} \label{eq:7.13}
+\end{equation}
+
+$p_i$ is defined as
+\begin{equation}
+\vec{p}_i = \frac{\alpha h}{2} \frac{\vec{v}}{|\vec{v}|} \frac{\partial N_i}{\partial x} \label{eq:7.14}
+\end{equation}
+
+Since $\vec{v}$ only has $x$ direction, 
+\begin{equation}
+\vec{p}_i = \frac{\alpha h}{2} \frac{\partial N_i}{\partial x} \frac{v_x}{|\vec{v}|} \hat{x} \label{eq:7.15}
+\end{equation}
+
+Where $h$ is the element length of the motion and $\alpha$ is defined as 
+\begin{equation}
+\alpha = \coth(P_e) - \frac{1}{P_e} \label{eq:7.16}
+\end{equation}
+
+The Peclet number serves as a crucial parameter for modelling spurious numerical oscillatory behaviour in simulations and is defined as \cite{ref25}
+\begin{equation}
+P_e = \frac{\mu_0 \sigma v h}{2} \label{eq:7.17}
+\end{equation}
+
+The application of the weighting function is essential in the presence of a convective velocity term. This means that the modified weighting function is implemented exclusively for the volume region terms \cite{ref1}.
+
+Considering all the above, the weak formation of equation \eqref{eq:7.5} for each direction can be expressed as 
+\begin{multline}
+-\int_{\Gamma_1} N_i \vec{\nabla} \vec{A}_i \cdot \hat{n}_c  d\Gamma_1 + \int_{\Omega_2} \vec{\nabla} N_i \cdot \vec{\nabla} \vec{A}_i  d\Omega_2 \\
++ \mu_0 \sigma \int_{\Omega_2} W_i \left( i\omega_e \vec{A}_i + v_x \frac{\partial \vec{A}_i}{\partial x} \right)  d\Omega_2 - \int_{\Omega_2} \vec{p}_i \cdot \nabla^2 \vec{A}_i  d\Omega_2 = 0 \\
+\text{for } i \in \{x,y,z\} \label{eq:7.18}
+\end{multline}
+
+A finite element method expression is obtained that allows numerical solving of the parameters.
+
+\subsection{Result Plot}
+Below shows the FEM result for the magnetic source field.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.45\textwidth]{figure7_1}
+\includegraphics[width=0.45\textwidth]{figure7_2}
+\caption{Magnetic field vector for the external rotor on xy plane and yz plane respectively}
+\end{figure}
+
+The FEM result for the rotor travelling and rotating on an aluminium plate is shown below.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.3\textwidth]{figure7_3}
+\includegraphics[width=0.3\textwidth]{figure7_4}
+\includegraphics[width=0.3\textwidth]{figure7_5}
+\caption{Magnetic field vector for xy, yz and xz plane respectively}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{figure7_6}
+\caption{Magnetic field reaction of the aluminium plate}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{figure7_7}
+\caption{Magnetic field magnitude on the plate against the x-coordinate}
+\end{figure}
+\newpage
+\section{Model Comparison}
+
+\subsection{Source Field Comparison}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.3\textwidth]{figure8_1}
+\includegraphics[width=0.3\textwidth]{figure8_2}
+\includegraphics[width=0.3\textwidth]{figure8_3}
+\caption{Magnitude of magnetic field comparisons between 3 models}
+\end{figure}
+
+\subsection{Plate Components Comparison}
+The result shows that the forces are oscillating in a period of $T = \pi/P$, aligning with the finding in section 3. The thrust force acts as a cosine function while the levitation force acts as a sine function. After comparison, we can observe that there is a strong agreement between the 2 models.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.4\textwidth]{figure8_4}
+\caption{Magnitude of thrust force and levitation force comparison between 2 models}
+\end{figure}
+\newpage
+\section{Conclusion}
+
+\subsection{Research Result}
+Our model contributes to a rigorous and complete 3D analysis of the field and force components of the Halbach rotor.
+
+For the source field, by using the magnetic charge model, the exact solution of the 3D source field of Halbach rotor is found, presented in equation \eqref{eq:3.7}. The solution can be further decomposed by using the orthogonal greedy algorithm, presented in section 4, to numerically analyse its eigenvalues and dependencies. This approach significantly simplifies the 3D expression and has higher utility over pure analytical and numerical models, as it can be directly used in different analyses.
+
+For the analysis on the Halbach rotor on a conductive plate, we derived a force equation based on the thin sheet approximation, denoted as equation \eqref{eq:3.30}. To further address the problem, a comprehensive analysis is taken in sections 5 and 6, deriving a force equation as well as the induced eddy current. These analysis serves as a foundation for complex 3D analysis in the future.
+
+\subsection{Future Analysis}
+\begin{itemize}
+\item \textbf{Rotor Design:} The rotor design in our model comprises only magnets, lacking specific components like a soft iron shell. Additionally, we assume that the magnets are tightly packed with no air gaps, which does not reflect real-world rotors. Future work should include a field analysis of various rotor shell designs.
+
+\item \textbf{Variation of Parameters:} We employ a fixed parameter for the numerical analysis. It is advisable to include comparisons among different parameters. This analysis is crucial for optimizing different components on different occasions.
+
+\item \textbf{Comparison with Traditional Rotor:} A comparison with traditional rotors can reveal the extent of improvements achieved when magnets are arranged in a Halbach array, such as increased magnetic field strength and efficiency. This future analysis can let us have a better understanding of the advantages of using a Halbach array in rotor design.
+\end{itemize}
+
+\newpage
+
+\bibliographystyle{plainnat}
+\bibliography{reference}
+
+\newpage
+
+\appendix
+\renewcommand{\thesection}{A\arabic{section}}
+
+\section{Green's Function for the Laplace Operator}
+\label{app:A1}
+
+The Laplace operator in cylindrical coordinates has the form
+\begin{equation}
+\frac{1}{\rho} \frac{\partial}{\partial \rho} \left( \rho \frac{\partial \phi}{\partial \rho} \right) + \frac{1}{\rho^2} \frac{\partial^2 \phi}{\partial \theta^2} + \frac{\partial^2 \phi}{\partial z^2} = -f(\rho,\theta)
+\label{eq:A1.1}
+\end{equation}
+
+Where the $-f(\rho,\theta)$ accounts for the source term.
+
+The free-space Green's function can be constructed through
+\begin{multline}
+\frac{1}{\rho} \frac{\partial}{\partial \rho} \left( \rho \frac{\partial g(\rho,\theta,z|\rho',\theta',z')}{\partial \rho} \right) + \frac{1}{\rho^2} \frac{\partial^2 g(\rho,\theta,z|\rho',\theta',z')}{\partial \theta^2} + \frac{\partial^2 g(\rho,\theta,z|\rho',\theta',z')}{\partial z^2} \\
+= -\frac{\delta(\rho-\rho')\delta(\theta-\theta')\delta(z-z')}{\rho}
+\label{eq:A1.2}
+\end{multline}
+
+Where the parameters are limited by
+\begin{equation}
+0 \leq \rho, \rho' < \infty, \quad 0 \leq \theta, \theta' \leq 2\pi, \quad -\infty \leq z, z' < \infty
+\label{eq:A1.3}
+\end{equation}
+
+From Jackson and Fox (1999),
+\begin{equation}
+\delta(\theta-\theta') = \frac{1}{2\pi} + \frac{1}{\pi} \sum_{n=1}^{\infty} \cos[n(\theta-\theta')] = \frac{1}{2\pi} \sum_{n=-\infty}^{\infty} \cos[n(\theta-\theta')]
+\label{eq:A1.4}
+\end{equation}
+
+The form of Green's function can be inferred based on equation \eqref{eq:A1.4}. 
+\begin{equation}
+g(\rho,\theta,z|\rho',\theta',z') = \sum_{n=-\infty}^{\infty} g_n(\rho,z|\rho',z') \cos[n(\theta-\theta')]
+\label{eq:A1.5}
+\end{equation}
+
+By substituting \eqref{eq:A1.5} in \eqref{eq:A1.2}, an expression for each mode $n$ is obtained:
+\begin{equation}
+\frac{1}{\rho} \frac{\partial}{\partial \rho} \left( \rho \frac{\partial g_n}{\partial \rho} \right) - \frac{n^2}{\rho^2} g_n + \frac{\partial^2 g_n}{\partial z^2} = -\frac{\delta(\rho-\rho')\delta(z-z')}{2\pi\rho}
+\label{eq:A1.6}
+\end{equation}
+
+By taking the Hankel transform with a constant $k$ on both sides, the LHS becomes
+\begin{equation}
+\int_0^{\infty} \left[ \frac{1}{\rho} \frac{\partial}{\partial \rho} \left( \rho \frac{\partial g_n}{\partial \rho} \right) - \frac{n^2}{\rho^2} g_n + \frac{\partial^2 g_n}{\partial z^2} \right] \rho J_n(k\rho)  d\rho
+\label{eq:A1.7}
+\end{equation}
+
+Considering
+\begin{multline}
+\frac{1}{\rho} \frac{\partial}{\partial \rho} \left( \rho \frac{\partial J_n(k\rho)}{\partial \rho} \right) + \left( k^2 - \frac{n^2}{\rho^2} \right) J_n(k\rho) \\
+= k^2 J_n''(k\rho) + \frac{k}{\rho} J_n'(k\rho) + \left( k^2 - \frac{n^2}{\rho^2} \right) J_n(k\rho) = 0
+\label{eq:A1.8}
+\end{multline}
+
+The terms excluding the axial term in equation \eqref{eq:A1.7} can be simplified by performing integration by parts twice:
+\begin{align}
+&\int_0^{\infty} \left[ \frac{\partial^2 g_n}{\partial \rho^2} + \frac{1}{\rho} \frac{\partial g_n}{\partial \rho} - \frac{n^2}{\rho^2} g_n \right] \rho J_n(k\rho)  d\rho \nonumber \\
+&= \left[ \rho J_n(k\rho) \frac{\partial g_n}{\partial \rho} \right]_0^{\infty} - \int_0^{\infty} k \frac{\partial g_n}{\partial \rho} \rho J_n'(k\rho)  d\rho - \int_0^{\infty} \frac{n^2}{\rho} g_n J_n(k\rho)  d\rho \nonumber \\
+&= -k \left[ \rho J_n'(k\rho) g_n \right]_0^{\infty} + \int_0^{\infty} g_n \left[ k^2 \rho J_n'' + k J_n'(k\rho) - \frac{n^2}{\rho} J_n(k\rho) \right] d\rho \nonumber \\
+&= -k^2 \int_0^{\infty} g_n \rho J_n(k\rho)  d\rho = -k^2 G_n
+\label{eq:A1.9}
+\end{align}
+
+Where $G_n$ is the Hankel transformed Green's function.
+
+The RHS of the equation can be simplified by the property of the Dirac delta function:
+\begin{equation}
+-\int_0^{\infty} \frac{\delta(\rho-\rho')\delta(z-z')}{2\pi\rho} \rho J_n(k\rho)  d\rho = -\frac{1}{2\pi} J_n(k\rho') \delta(z-z')
+\label{eq:A1.10}
+\end{equation}
+
+By substituting \eqref{eq:A1.9} and \eqref{eq:A1.10} into \eqref{eq:A1.6},
+\begin{equation}
+\frac{\partial^2 G_n}{\partial z^2} - k^2 G_n = -\frac{1}{2\pi} J_n(k\rho') \delta(z-z')
+\label{eq:A1.11}
+\end{equation}
+
+A solution for $G_n$ is obtained:
+\begin{equation}
+G_n(k,z|\rho',z') = \frac{1}{4\pi k} J_n(k\rho') e^{-k|z-z'|}
+\label{eq:A1.12}
+\end{equation}
+
+The original Green's function can be obtained by inverse Hankel transform.
+\begin{equation}
+g(\rho,\theta,z|\rho',\theta',z') = \frac{1}{4\pi} \int_0^{\infty} \sum_{n=-\infty}^{\infty} J_n(k\rho) J_n(k\rho') e^{-k|z-z'|} \cos[n(\theta-\theta')]  dk
+\label{eq:A1.13}
+\end{equation}
+
+By the addition theorem of Bessel functions, from Davis and Watson (1944b),
+\begin{equation}
+J_0 \left[ k \sqrt{\rho^2 + \rho'^2 - 2\rho\rho' \cos(\theta-\theta')} \right] = \sum_{n=-\infty}^{\infty} J_n(k\rho) J_n(k\rho') \cos[n(\theta-\theta')]
+\label{eq:A1.14}
+\end{equation}
+
+The Green's function is now expressed as
+\begin{equation}
+g(\rho,\theta,z|\rho',\theta',z') = \frac{1}{4\pi} \int_0^{\infty} e^{-k|z-z'|} J_0(kR)  dk
+\label{eq:A1.15}
+\end{equation}
+
+Where $R = \sqrt{\rho^2 + \rho'^2 - 2\rho\rho' \cos(\theta-\theta')}$.
+
+By the definition of Bessel function of the first kind $J_0(kR) = \frac{1}{\pi} \int_0^{2\pi} \cos(kR\sin\varphi)  d\varphi$ and the Laplace transformation formula $\int_0^{\infty} e^{-ak} \cos(bk)  dk = \frac{a}{a^2 + b^2}$, the final form of the expression is given by
+\begin{align}
+g(\rho,\theta,z|\rho',\theta',z') &= \frac{1}{4\pi^2} \int_0^{2\pi} \frac{|z-z'|}{(z-z')^2 + R^2 \sin^2 \varphi}  d\varphi \nonumber \\
+&= \frac{1}{4\pi} \left[ \rho^2 + \rho'^2 - 2\rho\rho' \cos(\theta-\theta') + (z-z')^2 \right]^{-1/2}
+\label{eq:A1.16}
+\end{align}
+
+\newpage
+
+\section{Integral Transformation of Derivative Functions}
+\label{app:A2}
+
+The Fourier transformation of a function $f(x)$ is given by
+\begin{equation}
+\tilde{f}(\xi) = \int_{-\infty}^{\infty} f(x) e^{i\xi x}  dx
+\label{eq:A2.1}
+\end{equation}
+
+The derivative transformation is given by
+\begin{align}
+\int_{-\infty}^{\infty} \frac{\partial f(x)}{\partial x} e^{i\xi x}  dx &= \underbrace{\left[ f(x) e^{i\xi x} \right]_{-\infty}^{\infty}}_{=0} - i\xi \int_{-\infty}^{\infty} f(x) e^{i\xi x}  dx \nonumber \\
+&= -i\xi \tilde{f}(\xi)
+\label{eq:A2.2}
+\end{align}
+
+The contribution of $f(x)$ is assumed to vanish at infinity. By utilizing \eqref{eq:A2.2}, the derivative transformation is generalized by
+\begin{equation}
+\int_{-\infty}^{\infty} \frac{\partial^n f(x)}{\partial x^n} e^{i\xi x}  dx = (-i\xi)^n \tilde{f}(\xi), \quad n \in \mathbb{Z}^+
+\label{eq:A2.3}
+\end{equation}
+
+\newpage
+
+\section{Details and Results of Orthogonal Greedy Algorithm}
+\label{app:A3}
+
+Below displays the MATLAB code used for $\Omega_{IV}$ external rotor.
+
+\begin{lstlisting}[language=Matlab, caption={MATLAB code for Orthogonal Greedy Algorithm}, label=code:A3]
+clc; clearvars; close all;
+
+% Parameters
+M0 = 1e6; % Magnetisation amplitude [A/m]
+P = 4; % Pole-pair number (integer ≥ 1)
+Ri = 0.005; % Inner radius [m]
+Ro = 0.015; % Outer radius [m]
+Wr = 0.02; % Magnet height (total) [m]
+N_r = 50; % Radial collocation points
+N_z = 50; % Axial collocation points
+theta0 = 0; % Azimuthal angle
+k_min = 1e-10; % Minimum k search bound [1/m] 
+k_max = 5000; % Maximum k search bound [1/m] 
+MAX_TERMS = 200; % Maximum number of modes
+TARGET_REL_ERR = 0.01; % 1% target RMS error
+ABS_TOL = 1e-8; % Integral absolute tolerance
+REL_TOL = 1e-4; % Integral relative tolerance
+ORTHO_TOL = 1e-4; % Looser orthogonality tolerance
+MIN_NORM = 1e-6; % Looser minimum vector norm threshold
+MAX_TRIALS_PER_TERM = 100; % Trials per term
+
+% Create collocation grid (ρ, z) for region IV
+rho_vec = linspace(Ro, Ro*1.5, N_r);
+z_vec = linspace(0, Wr/2, N_z);
+[RR, ZZ] = ndgrid(rho_vec, z_vec);
+ntotal = numel(RR);
+
+% Run only for external rotor
+rotor_type = 'external';
+fprintf('\n===== Processing %s rotor configuration (Region IV) =====\n', rotor_type);
+
+% Compute exact potential φ_exact on grid
+fprintf('Evaluating exact potential on %d x %d grid...\n', N_r, N_z);
+phi_exact = zeros(ntotal, 1);
+volume_factor = (1 - P); % External rotor factor
+
+warnState = warning('off', 'all');
+for idx = 1:ntotal
+    rho = RR(idx);
+    z = ZZ(idx);
+    phi_val = computePoint(rho, z, theta0, Ri, Ro, Wr, P, M0, volume_factor, ABS_TOL, REL_TOL);
+    phi_exact(idx) = phi_val;
+end
+warning(warnState);
+
+fprintf('Exact potential computed.\n');
+norm_exact = norm(phi_exact);
+fprintf('Exact potential RMS norm: %.4g\n', norm_exact);
+
+% Scale for numerical stability
+potential_scale = norm_exact;
+phi_exact_scaled = phi_exact / potential_scale;
+
+% Initialize variables
+k_list = [];
+type_list = [];
+C_list_scaled = [];
+B_normalized = [];
+err_hist = [];
+current_err = 1.0;
+n_terms = 0;
+
+fprintf('\nStarting adaptive greedy basis construction...\n');
+
+for n = 1:MAX_TERMS
+    % Compute current residual
+    if isempty(B_normalized)
+        r0 = phi_exact_scaled;
+    else
+        % Use least squares with regularization
+        [U, S, V] = svd(B_normalized, 'econ');
+        s = diag(S);
+        rank = sum(s > 1e-12 * max(s));
+        if rank > 0
+            lambda = 1e-8 * max(s);
+            s_inv = diag(s(1:rank) ./ (s(1:rank).^2 + lambda^2));
+            C_current = V(:, 1:rank) * s_inv * (U(:, 1:rank)' * phi_exact_scaled);
+            r0 = phi_exact_scaled - B_normalized * C_current;
+        else
+            r0 = phi_exact_scaled;
+        end
+    end
+    
+    norm_r0 = norm(r0);
+    if n_terms == 0
+        fprintf('Initial residual norm: %.6f\n', norm_r0);
+    end
+    
+    % Adaptive k-space scanning based on current error
+    if current_err > 0.5
+        % High error - scan broadly
+        k_scans = {
+            logspace(log10(k_min), log10(1e-2), 100),
+            logspace(log10(1e-2), log10(1), 200),
+            logspace(log10(1), log10(100), 300),
+            logspace(log10(100), log10(k_max), 200)
+        };
+    elseif current_err > 0.1
+        % Medium error - focus on medium frequencies
+        k_scans = {
+            logspace(log10(1e-3), log10(10), 400),
+            logspace(log10(10), log10(500), 400)
+        };
+    else
+        % Low error - refine existing frequencies
+        if ~isempty(k_list)
+            % Focus around existing k values
+            k_centers = unique(k_list);
+            k_scans = {};
+            for kc = k_centers
+                if kc > 0
+                    lb = max(k_min, 0.1 * kc);
+                    ub = min(k_max, 10 * kc);
+                    k_scans{end+1} = logspace(log10(lb), log10(ub), 200);
+                end
+            end
+            % Also include some random exploration
+            k_scans{end+1} = logspace(log10(k_min), log10(k_max), 300);
+        else
+            k_scans = {logspace(log10(k_min), log10(k_max), 500)};
+        end
+    end
+    
+    best_candidate = [];
+    best_candidate_err = inf;
+    
+    fprintf('Term %d: Scanning %d frequency ranges...\n', n, length(k_scans));
+    
+    for scan_idx = 1:length(k_scans)
+        k_scan = k_scans{scan_idx};
+        
+        for type_idx = 1:2
+            for k_idx = 1:length(k_scan)
+                k0 = k_scan(k_idx);
+                
+                % Skip if this k-type combination already exists
+                if any(k_list == k0 & type_list == type_idx)
+                    continue;
+                end
+                
+                v = basisVectorIV(k0, type_idx, RR, ZZ, P);
+                v_norm = norm(v);
+                
+                if v_norm < MIN_NORM
+                    continue;
+                end
+                
+                v_normalized = v / v_norm;
+                
+                % Check orthogonality with current basis
+                if ~isempty(B_normalized)
+                    proj = B_normalized' * v_normalized;
+                    if any(abs(proj) > 0.99)  % Nearly parallel to existing basis
+                        continue;
+                    end
+                end
+                
+                % Simple projection test - how much does this reduce residual?
+                proj_r = dot(r0, v_normalized);
+                candidate_err = sqrt(max(0, norm_r0^2 - proj_r^2)) / norm(phi_exact_scaled);
+                
+                if candidate_err < best_candidate_err
+                    best_candidate_err = candidate_err;
+                    best_candidate = struct('k', k0, 'type', type_idx, 'v', v, 'v_norm', v_norm);
+                end
+            end
+        end
+    end
+    
+    if isempty(best_candidate)
+        fprintf('No candidate found in scan. Trying emergency measures...\n');
+        
+        % Emergency: try random k values
+        emergency_ks = [logspace(log10(k_min), log10(k_max), 1000), ...
+                       rand(1, 500) * (k_max - k_min) + k_min];
+        
+        for k0 = emergency_ks
+            for type_idx = 1:2
+                v = basisVectorIV(k0, type_idx, RR, ZZ, P);
+                v_norm = norm(v);
+                if v_norm > MIN_NORM
+                    v_normalized = v / v_norm;
+                    proj_r = dot(r0, v_normalized);
+                    candidate_err = sqrt(max(0, norm_r0^2 - proj_r^2)) / norm(phi_exact_scaled);
+                    
+                    if candidate_err < best_candidate_err
+                        best_candidate_err = candidate_err;
+                        best_candidate = struct('k', k0, 'type', type_idx, 'v', v, 'v_norm', v_norm);
+                    end
+                end
+            end
+        end
+    end
+    
+    if isempty(best_candidate)
+        fprintf('No valid candidate found after emergency scan. Stopping.\n');
+        break;
+    end
+    
+    % Add the best candidate
+    k_opt = best_candidate.k;
+    type_opt = best_candidate.type;
+    v_opt_normalized = best_candidate.v / best_candidate.v_norm;
+    
+    B_temp = [B_normalized, v_opt_normalized];
+    
+    % Solve for new coefficients
+    [U, S, V] = svd(B_temp, 'econ');
+    s = diag(S);
+    rank = sum(s > 1e-12 * max(s));
+    
+    if rank > 0
+        lambda = 1e-8 * max(s);
+        s_inv = diag(s(1:rank) ./ (s(1:rank).^2 + lambda^2));
+        C_temp = V(:, 1:rank) * s_inv * (U(:, 1:rank)' * phi_exact_scaled);
+        residual = phi_exact_scaled - B_temp * C_temp;
+        current_err_candidate = norm(residual);
+    else
+        C_temp = [];
+        current_err_candidate = 1.0;
+    end
+    
+    % Always accept if it improves error
+    if current_err_candidate <= current_err || n_terms < 5  % Force first 5 terms
+        k_list(end+1) = k_opt;
+        type_list(end+1) = type_opt;
+        B_normalized = B_temp;
+        C_list_scaled = C_temp;
+        prev_err = current_err;
+        current_err = current_err_candidate;
+        err_hist(end+1) = current_err;
+        n_terms = n_terms + 1;
+        
+        error_reduction = prev_err - current_err;
+        fprintf('Term %d: type=%d, k_n=%.6f, RelErr=%.6f%%, Δ=%.6f%%, max|C|=%.2e\n', ...
+            n_terms, type_opt, k_opt, 100*current_err, 100*error_reduction, max(abs(C_temp)));
+        
+        % Check convergence
+        if current_err < TARGET_REL_ERR
+            fprintf('\n🎯 TARGET ACHIEVED: Error (%.6f%%) < target (%.4f%%) with %d terms!\n', ...
+                100*current_err, 100*TARGET_REL_ERR, n_terms);
+            break;
+        end
+        
+        % Force at least 10 terms before considering stopping
+        if n_terms >= 10 && error_reduction < 1e-6
+            fprintf('Minimal improvement. Stopping.\n');
+            break;
+        end
+    else
+        fprintf('Candidate rejected (no improvement). Continuing search...\n');
+    end
+    
+    % Don't stop early - keep going until we have reasonable terms
+    if n_terms >= 50 && current_err < 0.05  % Good enough
+        fprintf('Reasonable accuracy achieved with %d terms. Stopping.\n', n_terms);
+        break;
+    end
+end
+
+% Transform coefficients back to original space
+fprintf('\nComputing final coefficients...\n');
+C_list_final = zeros(size(C_list_scaled));
+
+for i = 1:length(k_list)
+    basis_func = basisVectorIV(k_list(i), type_list(i), RR, ZZ, P);
+    basis_norm = norm(basis_func);
+    if basis_norm > 0
+        C_list_final(i) = C_list_scaled(i) * potential_scale / basis_norm;
+    else
+        C_list_final(i) = 0;
+    end
+end
+C_list = C_list_final;
+
+% Output results
+fprintf('\n%s Rotor (Region IV): Results\n', upper(rotor_type));
+fprintf('%-6s %-12s %-15s %-15s\n', 'Index', 'k_n [1/m]', 'Bessel Type', 'C(n)');
+fprintf('------------------------------------------------\n');
+for i = 1:length(k_list)
+    bessel_type = {'J_P', 'Y_P'};
+    fprintf('%-6d %-12.6f %-15s %-15.6g\n', i, k_list(i), bessel_type{type_list(i)}, C_list(i));
+end
+fprintf('------------------------------------------------\n');
+fprintf('Final RMS error: %.6f%%\n', 100*current_err);
+fprintf('Number of terms: %d\n', n_terms);
+
+% Compute verification
+fprintf('\nComputing verification...\n');
+phi_approx = zeros(size(phi_exact));
+for i = 1:length(k_list)
+    basis_func = basisVectorIV(k_list(i), type_list(i), RR, ZZ, P);
+    phi_approx = phi_approx + C_list(i) * basis_func;
+end
+
+abs_error = phi_exact - phi_approx;
+rel_error = abs_error ./ (abs(phi_exact) + eps);
+rms_abs_error = sqrt(mean(abs_error.^2));
+rms_rel_error = sqrt(mean(rel_error.^2));
+
+fprintf('\n=== VERIFICATION ===\n');
+fprintf('RMS Absolute Error: %.6e\n', rms_abs_error);
+fprintf('RMS Relative Error: %.6f%%\n', 100*rms_rel_error);
+fprintf('Maximum Absolute Error: %.6e\n', max(abs(abs_error)));
+fprintf('Maximum Relative Error: %.6f%%\n', 100*max(abs(rel_error)));
+
+% Plot results
+phi_exact_grid = reshape(phi_exact, size(RR));
+phi_approx_grid = reshape(phi_approx, size(RR));
+abs_error_grid = reshape(abs_error, size(RR));
+rel_error_grid = reshape(rel_error, size(RR));
+
+plotResults(RR, ZZ, phi_exact_grid, phi_approx_grid, abs_error_grid, rel_error_grid, ...
+           k_list, type_list, C_list, err_hist, Ri, Ro, Wr, rotor_type);
+
+% Save results
+eigenvalues = k_list;
+basis_types = type_list;
+coefficients = C_list;
+
+save('external_rotor_results.mat', 'eigenvalues', 'basis_types', 'coefficients', ...
+     'rotor_type', 'P', 'Ri', 'Ro', 'Wr', 'phi_exact', 'phi_approx', ...
+     'rms_abs_error', 'rms_rel_error', 'TARGET_REL_ERR');
+
+fprintf('Results saved to external_rotor_results.mat\n');
+
+%% Helper Functions
+function phi = computePoint(rho, z, theta, Ri, Ro, Wr, P, M0, volume_factor, abs_tol, rel_tol)
+phi = 0;
+eps_dist = 1e-12;
+
+try
+    intVol = @(rp, tp, zp) cos(P*tp) ./ max(sqrt(rho^2 + rp.^2 - 2*rho*rp.*cos(theta-tp) + (z-zp).^2), eps_dist);
+    intRi = @(tp, zp) cos(P*tp) ./ max(sqrt(rho^2 + Ri^2 - 2*rho*Ri*cos(theta-tp) + (z-zp).^2), eps_dist);
+    intRo = @(tp, zp) cos(P*tp) ./ max(sqrt(rho^2 + Ro^2 - 2*rho*Ro*cos(theta-tp) + (z-zp).^2), eps_dist);
+    
+    I1 = integral3(intVol, Ri, Ro, 0, 2*pi, -Wr/2, Wr/2, 'AbsTol', abs_tol, 'RelTol', rel_tol);
+    I2 = integral2(intRi, 0, 2*pi, -Wr/2, Wr/2, 'AbsTol', abs_tol, 'RelTol', rel_tol);
+    I3 = integral2(intRo, 0, 2*pi, -Wr/2, Wr/2, 'AbsTol', abs_tol, 'RelTol', rel_tol);
+    
+    phi = M0/(4*pi) * (volume_factor * I1 - Ri*I2 + Ro*I3);
+    
+catch
+    phi = 0;
+end
+end
+
+function v = basisVectorIV(k, type, RR, ZZ, P)
+rho_vals = RR(:);
+z_vals = ZZ(:);
+k = abs(k);
+
+if k > 1e4
+    v = zeros(size(rho_vals));
+    return;
+end
+
+switch type
+    case 1
+        v = exp(-k * abs(z_vals)) .* besselj(P, k * rho_vals);
+    case 2
+        valid = rho_vals > 1e-12;
+        v = zeros(size(rho_vals));
+        v(valid) = exp(-k * abs(z_vals(valid))) .* bessely(P, k * rho_vals(valid));
+        v(isinf(v) | isnan(v)) = 0;
+end
+end
+
+function plotResults(RR, ZZ, phi_exact, phi_approx, abs_error, rel_error, ...
+                    k_list, type_list, C_list, err_hist, Ri, Ro, Wr, rotor_type)
+    
+    font_size = 12;
+    
+    % 1. Potential Comparison
+    fig1 = figure('Position', [100, 100, 1200, 800]);
+    sgtitle(sprintf('%s Rotor - Results', upper(rotor_type)), 'FontSize', font_size+2);
+    
+    subplot(2,3,1);
+    contourf(RR, ZZ, phi_exact, 30, 'LineColor', 'none');
+    colorbar; axis equal tight;
+    title('Exact Potential');
+    xlabel('\rho [m]'); ylabel('z [m]');
+    
+    subplot(2,3,2);
+    contourf(RR, ZZ, phi_approx, 30, 'LineColor', 'none');
+    colorbar; axis equal tight;
+    title('Approximate Potential');
+    xlabel('\rho [m]'); ylabel('z [m]');
+    
+    subplot(2,3,3);
+    contourf(RR, ZZ, phi_exact - phi_approx, 30, 'LineColor', 'none');
+    colorbar; axis equal tight;
+    title('Difference');
+    xlabel('\rho [m]'); ylabel('z [m]');
+    
+    subplot(2,3,4);
+    contourf(RR, ZZ, abs_error, 30, 'LineColor', 'none');
+    colorbar; axis equal tight;
+    title('Absolute Error');
+    xlabel('\rho [m]'); ylabel('z [m]');
+    
+    subplot(2,3,5);
+    contourf(RR, ZZ, rel_error * 100, 30, 'LineColor', 'none');
+    colorbar; axis equal tight;
+    title('Relative Error (%)');
+    xlabel('\rho [m]'); ylabel('z [m]');
+    
+    % Convergence
+    subplot(2,3,6);
+    if ~isempty(err_hist)
+        semilogy(1:length(err_hist), err_hist*100, 'o-', 'LineWidth', 2);
+        hold on;
+        yline(1, 'r--', 'Target 1%', 'LineWidth', 2);
+        grid on;
+        xlabel('Number of Terms');
+        ylabel('Relative RMS Error (%)');
+        title('Convergence History');
+        legend('Error', 'Target');
+    end
+    
+    saveas(fig1, sprintf('%s_results.png', rotor_type));
+    
+    % 2. Coefficient Analysis
+    if length(k_list) > 1
+        fig2 = figure('Position', [100, 100, 1000, 400]);
+        
+        subplot(1,2,1);
+        stem(1:length(C_list), abs(C_list), 'filled', 'LineWidth', 2);
+        set(gca, 'YScale', 'log');
+        grid on;
+        title('Coefficient Magnitudes');
+        xlabel('Term Index'); ylabel('|C(n)|');
+        
+        subplot(1,2,2);
+        scatter(k_list, abs(C_list), 50, type_list, 'filled');
+        set(gca, 'XScale', 'log', 'YScale', 'log');
+        colorbar; grid on;
+        title('Coefficients vs Wave Number');
+        xlabel('k_n [1/m]'); ylabel('|C(n)|');
+        
+        saveas(fig2, sprintf('%s_coefficients.png', rotor_type));
+    end
+    
+    fprintf('Plots saved.\n');
+end
+\end{lstlisting}
+
+Here are the coefficients given by the code.
+
+\begin{table}[H]
+\centering
+\caption{External Rotor (Region IV) Results}
+\begin{tabular}{cccc}
+\toprule
+Index & $k_n$ [1/m] & Bessel Type & $C(n)$ \\
+\midrule
+1 & 35.631940 & $Y_P$ & -5.58428 \\
+2 & 2.745342 & $J_P$ & 1.59093e+12 \\
+3 & 545.550537 & $J_P$ & 319828 \\
+4 & 1043.834705 & $J_P$ & -1.22532e+06 \\
+5 & 1716.148654 & $J_P$ & -1.12535e+06 \\
+6 & 179.912458 & $Y_P$ & -182550 \\
+7 & 555.658639 & $Y_P$ & 1.26226e+06 \\
+8 & 2317.891437 & $Y_P$ & 355574 \\
+9 & 2907.275370 & $J_P$ & -73867.5 \\
+10 & 1620.534842 & $J_P$ & -348568 \\
+11 & 3497.505992 & $Y_P$ & -202987 \\
+12 & 4169.559779 & $Y_P$ & -189943 \\
+13 & 4848.017806 & $Y_P$ & 55642.5 \\
+14 & 2154.020186 & $J_P$ & -573913 \\
+15 & 2742.705678 & $Y_P$ & -678136 \\
+16 & 3497.505992 & $J_P$ & 901420 \\
+17 & 5000.000000 & $J_P$ & 155588 \\
+18 & 4321.292688 & $J_P$ & -527123 \\
+19 & 337.994550 & $Y_P$ & 1.49258e+06 \\
+20 & 1038.905751 & $Y_P$ & -957105 \\
+21 & 5000.000000 & $Y_P$ & -76093.6 \\
+22 & 355.144121 & $J_P$ & 705228 \\
+23 & 4693.732567 & $J_P$ & 682303 \\
+24 & 1352.479865 & $J_P$ & 1.27153e+06 \\
+25 & 125.770318 & $J_P$ & 4.07008e+06 \\
+26 & 3849.305527 & $J_P$ & -735949 \\
+27 & 4508.853619 & $Y_P$ & -199547 \\
+28 & 782.583181 & $Y_P$ & 1.22251e+06 \\
+29 & 1349.545939 & $Y_P$ & 120742 \\
+30 & 85.078681 & $Y_P$ & 3138.08 \\
+31 & 3082.755463 & $Y_P$ & 921481 \\
+32 & 3845.285812 & $Y_P$ & 2740.81 \\
+33 & 782.081824 & $J_P$ & -947800 \\
+34 & 1994.854573 & $Y_P$ & -829453 \\
+35 & 4861.932101 & $J_P$ & 595308 \\
+36 & 51.264204 & $J_P$ & -5.47123e+07 \\
+37 & 228.063312 & $J_P$ & -1.70299e+06 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Final RMS error: 0.815700\%
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1.2\textwidth]{figureA3_1}
+\caption{Flowchart of the code}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{figureA3_2}
+\caption{Field plot and convergence history}
+\end{figure}
+
+\newpage
+
+\section{Coefficients of Magnetic Components in the Air and Plate Region}
+\label{app:A4}
+
+To simplify calculations, the following variables are introduced:
+\begin{align}
+k^2 &= \xi^2 + \zeta^2, \quad \gamma^2 = \xi^2 + \zeta^2 + i\mu_0 \sigma (\omega_e - v_x \xi)
+\label{eq:A4.1} \\
+\tilde{B}_x^s &= \tilde{B}_x^s (\xi, y = -h_r, \zeta), \quad \tilde{B}_y^s = \tilde{B}_y^s (\xi, y = -h_r, \zeta), \quad \tilde{B}_z^s = \tilde{B}_z^s (\xi, y = -h_r, \zeta)
+\label{eq:A4.2} \\
+S_H &= e^{k h_r}, \quad T_H = e^{-k h_r}
+\label{eq:A4.3} \\
+S_D &= e^{k d_p}, \quad T_D = e^{-k d_p}
+\label{eq:A4.4} \\
+U &= \upsilon S_H, \quad V = \nu T_D T_H
+\label{eq:A4.5} \\
+D &= 2k \sinh(k d_p)
+\label{eq:A4.6}
+\end{align}
+
+The coefficients are
+\begin{align}
+\alpha_x &= \frac{1}{T_H D} \left[ S_D (-\tilde{B}_z^s + i\mu_0 \zeta U) - i\mu_0 \zeta V \right]
+\label{eq:A4.7} \\
+\beta_x &= \frac{1}{S_H D} \left[ T_D (-\tilde{B}_z^s + i\mu_0 \zeta U) - i\mu_0 \zeta V \right]
+\label{eq:A4.8} \\
+\alpha_y &= \beta_y = 0
+\label{eq:A4.9} \\
+\alpha_z &= \frac{1}{T_H D} \left[ S_D (\tilde{B}_x^s - i\mu_0 \xi U) + i\mu_0 \xi V \right]
+\label{eq:A4.10} \\
+\beta_z &= \frac{1}{S_H D} \left[ T_D (\tilde{B}_x^s - i\mu_0 \xi U) + i\mu_0 \xi V \right]
+\label{eq:A4.11} \\
+\upsilon &= -\frac{T_H}{2\mu_0 k^2} \left[ k \tilde{B}_y^s + i\zeta \tilde{B}_z^s + i\xi \tilde{B}_x^s \right]
+\label{eq:A4.12} \\
+\nu &= \frac{S_H}{2\mu_0 k^2} \left[ -k \tilde{B}_y^s + i\zeta \tilde{B}_z^s + i\xi \tilde{B}_x^s \right]
+\label{eq:A4.13}
+\end{align}
+
+\end{document}
